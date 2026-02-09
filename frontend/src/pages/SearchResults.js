@@ -51,6 +51,25 @@ export default function SearchResults({ user, onLogout }) {
 
       const response = await axios.get(`${API}/listings`, { params });
       setListings(response.data);
+
+      // Log search if user is authenticated
+      if (user) {
+        try {
+          const token = localStorage.getItem('cablib_token');
+          await axios.post(
+            `${API}/search-logs`,
+            {
+              city: filters.city || null,
+              radius: filters.radius ? parseInt(filters.radius) : null,
+              structure_type: filters.structure_type || null,
+              profession: filters.profession || null
+            },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (logError) {
+          console.error('Error logging search:', logError);
+        }
+      }
     } catch (error) {
       toast.error('Erreur lors du chargement des annonces');
     } finally {
