@@ -46,9 +46,9 @@ export default function AuthPage({ onLogin }) {
       onLogin(access_token, user);
       toast.success(isLogin ? 'Connexion réussie !' : 'Compte créé avec succès !');
       
-      // Redirect based on user type
+      // Redirect based on user type and action
       if (user.user_type === 'locataire') {
-        navigate('/search');
+        navigate(isLogin ? '/search' : '/dashboard-locataire');
       } else {
         navigate('/dashboard-proprietaire');
       }
