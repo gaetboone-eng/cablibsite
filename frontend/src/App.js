@@ -9,6 +9,7 @@ import DashboardLocataire from './pages/DashboardLocataire';
 import DashboardProprietaire from './pages/DashboardProprietaire';
 import ProfilePage from './pages/ProfilePage';
 import CreateListing from './pages/CreateListing';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { Toaster } from './components/ui/sonner';
 
 function App() {
@@ -60,6 +61,10 @@ function App() {
           <Route 
             path="/create-listing" 
             element={user && user.user_type === 'proprietaire' ? <CreateListing user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/analytics" 
+            element={user && user.user_type === 'admin' ? <AnalyticsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
           <Route path="/profile" element={user ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         </Routes>
