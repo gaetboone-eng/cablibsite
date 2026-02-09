@@ -1,0 +1,273 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Header } from '../components/Header';
+import { Button } from '../components/ui/button';
+import { MapPin, Home, Users, TrendingUp, Mail, Phone, Heart, ArrowLeft, Building2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+export default function ListingDetail({ user, onLogout }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [listing, setListing] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  useEffect(() => {
+    fetchListing();
+    if (user) {
+      checkFavorite();
+    }
+  }, [id, user]);
+
+  const fetchListing = async () => {
+    try {
+      const response = await axios.get(`${API}/listings/${id}`);
+      setListing(response.data);
+    } catch (error) {
+      toast.error('Annonce introuvable');
+      navigate('/search');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkFavorite = async () => {
+    try {
+      const token = localStorage.getItem('cablib_token');
+      const response = await axios.get(`${API}/favorites`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const favorited = response.data.some(fav => fav.listing_id === id);
+      setIsFavorite(favorited);
+    } catch (error) {
+      console.error('Error checking favorite:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour ajouter aux favoris');
+      navigate('/auth');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('cablib_token');
+      if (isFavorite) {
+        await axios.delete(`${API}/favorites/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Retiré des favoris');
+        setIsFavorite(false);
+      } else {
+        await axios.post(`${API}/favorites`, 
+          { listing_id: id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success('Ajouté aux favoris');
+        setIsFavorite(true);
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la modification des favoris');
+    }
+  };
+
+  const handleContact = () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour contacter le propriétaire');
+      navigate('/auth');
+      return;
+    }
+    toast.success('Fonctionnalité de contact à venir !');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!listing) {
+    return null;
+  }
+
+  const images = listing.photos && listing.photos.length > 0 
+    ? listing.photos 
+    : ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200'];
+
+  return (
+    <div className="min-h-screen bg-stone-50" data-testid="listing-detail-page">
+      <Header user={user} onLogout={onLogout} />
+
+      <div className="pt-24 pb-12 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate(-1)}
+            className="mb-6 gap-2"
+            data-testid="back-button"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour
+          </Button>
+
+          {/* Image Gallery */}
+          <div className="mb-8" data-testid="image-gallery">
+            <div className="relative h-96 rounded-2xl overflow-hidden mb-4">
+              <img 
+                src={images[selectedImageIndex]} 
+                alt={listing.title}
+                className="w-full h-full object-cover"
+                data-testid="main-image"
+              />
+              {listing.is_featured && (
+                <div className="absolute top-4 right-4 bg-accent text-white px-4 py-2 rounded-full font-medium shadow-lg">
+                  En vedette
+                </div>
+              )}
+            </div>
+            {images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`flex-shrink-0 h-20 w-32 rounded-xl overflow-hidden border-2 transition-all ${
+                      selectedImageIndex === idx ? 'border-primary' : 'border-transparent'
+                    }`}
+                    data-testid={`thumbnail-${idx}`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2" data-testid="listing-main-content">
+              <div className="bg-white rounded-2xl p-8 shadow-sm mb-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h1 className="text-4xl font-bold text-foreground mb-3" data-testid="listing-title-detail">
+                      {listing.title}
+                    </h1>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-5 w-5" />
+                      <span className="text-lg" data-testid="listing-address">{listing.address}, {listing.city}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-6 py-6 border-y border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 rounded-xl p-3">
+                      <Building2 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Type</p>
+                      <p className="font-semibold text-foreground" data-testid="structure-type-detail">{listing.structure_type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 rounded-xl p-3">
+                      <Home className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Surface</p>
+                      <p className="font-semibold text-foreground" data-testid="size-detail">{listing.size} m²</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h2 className="text-2xl font-semibold text-foreground mb-4">Description</h2>
+                  <p className="text-base leading-relaxed text-muted-foreground" data-testid="listing-description">
+                    {listing.description}
+                  </p>
+                </div>
+              </div>
+
+              {/* Professionals Present */}
+              {listing.professionals_present && listing.professionals_present.length > 0 && (
+                <div className="bg-white rounded-2xl p-8 shadow-sm mb-6" data-testid="professionals-present-section">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Users className="h-6 w-6 text-primary" />
+                    <h2 className="text-2xl font-semibold text-foreground">Professionnels présents</h2>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {listing.professionals_present.map((prof, idx) => (
+                      <span key={idx} className="bg-secondary/50 text-secondary-foreground px-4 py-2 rounded-full font-medium">
+                        {prof}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Profiles Searched */}
+              {listing.profiles_searched && listing.profiles_searched.length > 0 && (
+                <div className="bg-white rounded-2xl p-8 shadow-sm" data-testid="profiles-searched-section">
+                  <div className="flex items-center gap-3 mb-4">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                    <h2 className="text-2xl font-semibold text-foreground">Profils recherchés</h2>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {listing.profiles_searched.map((profile, idx) => (
+                      <span key={idx} className="bg-accent/10 text-accent px-4 py-2 rounded-full font-medium">
+                        {profile}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-24" data-testid="contact-sidebar">
+                <div className="mb-6">
+                  <p className="text-sm text-muted-foreground mb-2">Loyer mensuel</p>
+                  <p className="text-4xl font-bold text-foreground" data-testid="rent-detail">
+                    {listing.monthly_rent}€
+                    <span className="text-lg font-normal text-muted-foreground">/mois</span>
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleContact}
+                    className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-6 shadow-lg shadow-primary/20"
+                    data-testid="contact-button"
+                  >
+                    <Mail className="mr-2 h-5 w-5" />
+                    Contacter
+                  </Button>
+
+                  <Button
+                    onClick={toggleFavorite}
+                    variant="outline"
+                    className="w-full rounded-full py-6"
+                    data-testid="favorite-button"
+                  >
+                    <Heart className={`mr-2 h-5 w-5 ${isFavorite ? 'fill-primary text-primary' : ''}`} />
+                    {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
