@@ -310,6 +310,79 @@ async def remove_favorite(listing_id: str, current_user: dict = Depends(get_curr
         raise HTTPException(status_code=404, detail="Favorite not found")
     return {"message": "Favorite removed"}
 
+# Search Log Models
+class SearchLogCreate(BaseModel):
+    city: Optional[str] = None
+    radius: Optional[int] = None
+    structure_type: Optional[str] = None
+    profession: Optional[str] = None
+
+class SearchLog(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    user_email: str
+    user_name: str
+    user_profession: str
+    city: Optional[str]
+    radius: Optional[int]
+    structure_type: Optional[str]
+    profession: Optional[str]
+    timestamp: str
+
+class SearchStats(BaseModel):
+    total_searches: int
+    searches_by_city: dict
+    recent_searches: List[SearchLog]
+
+# Search Log routes
+@api_router.post("/search-logs", response_model=SearchLog)
+async def log_search(search_data: SearchLogCreate, current_user: dict = Depends(get_current_user)):
+    log_id = str(uuid.uuid4())
+    log_doc = {
+        "id": log_id,
+        "user_id": current_user["id"],
+        "user_email": current_user["email"],
+        "user_name": f"{current_user['first_name']} {current_user['last_name']}",
+        "user_profession": current_user["profession"],
+        "city": search_data.city,
+        "radius": search_data.radius,
+        "structure_type": search_data.structure_type,
+        "profession": search_data.profession,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.search_logs.insert_one(log_doc)
+    return SearchLog(**log_doc)
+
+@api_router.get("/analytics/searches", response_model=SearchStats)
+async def get_search_stats(current_user: dict = Depends(get_current_user)):
+    # Only admin can access
+    if current_user.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all search logs
+    logs = await db.search_logs.find({}, {"_id": 0}).sort("timestamp", -1).to_list(1000)
+    
+    # Count by city
+    searches_by_city = {}
+    for log in logs:
+        city = log.get("city", "Toutes")
+        searches_by_city[city] = searches_by_city.get(city, 0) + 1
+    
+    return SearchStats(
+        total_searches=len(logs),
+        searches_by_city=searches_by_city,
+        recent_searches=[SearchLog(**log) for log in logs[:50]]
+    )
+
+@api_router.get("/analytics/searches-by-city/{city}")
+async def get_searches_by_city(city: str, current_user: dict = Depends(get_current_user)):
+    if current_user.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    logs = await db.search_logs.find({"city": {"$regex": city, "$options": "i"}}, {"_id": 0}).sort("timestamp", -1).to_list(100)
+    return {"city": city, "count": len(logs), "searches": [SearchLog(**log) for log in logs]}
+
 app.include_router(api_router)
 
 app.add_middleware(
