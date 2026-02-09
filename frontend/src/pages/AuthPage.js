@@ -46,12 +46,15 @@ export default function AuthPage({ onLogin }) {
       onLogin(access_token, user);
       toast.success(isLogin ? 'Connexion réussie !' : 'Compte créé avec succès !');
       
-      // Redirect based on user type and action
-      if (user.user_type === 'locataire') {
-        navigate(isLogin ? '/search' : '/dashboard-locataire');
-      } else {
-        navigate('/dashboard-proprietaire');
-      }
+      // Small delay to ensure state is updated before redirect
+      setTimeout(() => {
+        // Redirect based on user type and action
+        if (user.user_type === 'locataire') {
+          navigate(isLogin ? '/search' : '/dashboard-locataire');
+        } else {
+          navigate('/dashboard-proprietaire');
+        }
+      }, 100);
     } catch (error) {
       const message = error.response?.data?.detail || 'Une erreur est survenue';
       toast.error(message);
