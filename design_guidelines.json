@@ -1,0 +1,154 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "CabLib",
+      "personality": "Professional, Collaborative, Organic, Trustworthy",
+      "archetype": "The Organic Architect",
+      "description": "A premium marketplace connecting medical professionals with health structures. Combines the efficiency of real estate platforms with the trust and hygiene of the medical sector."
+    },
+    "typography": {
+      "font_family": {
+        "heading": "Manrope, sans-serif",
+        "body": "DM Sans, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-5xl md:text-6xl font-bold tracking-tight leading-[1.1]",
+        "h2": "text-4xl md:text-5xl font-semibold tracking-tight",
+        "h3": "text-2xl md:text-3xl font-medium",
+        "body_lg": "text-lg leading-relaxed text-muted-foreground",
+        "body": "text-base leading-relaxed text-muted-foreground",
+        "caption": "text-sm font-medium tracking-wide uppercase text-muted-foreground/70"
+      },
+      "usage": {
+        "headings": "Use Manrope for all headings. Keep them dark and tight (tracking-tight).",
+        "body": "Use DM Sans for all paragraphs. Prioritize readability with relaxed leading."
+      }
+    },
+    "colors": {
+      "theme": "light",
+      "palette": {
+        "primary": {
+          "DEFAULT": "#065f46",
+          "foreground": "#ffffff",
+          "hover": "#047857",
+          "description": "Deep Emerald Green - Used for Primary Actions, Brand headers."
+        },
+        "secondary": {
+          "DEFAULT": "#dcfce7",
+          "foreground": "#065f46",
+          "description": "Sage Green - Used for background accents, badges, light highlights."
+        },
+        "accent": {
+          "DEFAULT": "#c2410c",
+          "foreground": "#ffffff",
+          "description": "Terracotta - Used for 'Book', 'Contact', or Urgent Actions."
+        },
+        "background": {
+          "DEFAULT": "#fafaf9",
+          "paper": "#ffffff",
+          "subtle": "#f5f5f4"
+        },
+        "text": {
+          "primary": "#1c1917",
+          "secondary": "#57534e",
+          "muted": "#a8a29e"
+        },
+        "border": {
+          "DEFAULT": "#e7e5e4",
+          "focus": "#065f46"
+        }
+      },
+      "gradients": {
+        "hero": "bg-gradient-to-b from-stone-50 to-emerald-50/50",
+        "card_hover": "hover:bg-gradient-to-br hover:from-white hover:to-emerald-50/30"
+      }
+    },
+    "layout": {
+      "spacing": {
+        "container_padding": "p-6 md:p-12 lg:p-16",
+        "section_gap": "gap-16 md:gap-24",
+        "item_gap": "gap-6 md:gap-8"
+      },
+      "grid_systems": {
+        "bento_hero": "grid grid-cols-1 md:grid-cols-12 gap-6",
+        "listings": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+        "split_view": "grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 h-[calc(100vh-80px)]"
+      },
+      "border_radius": {
+        "card": "rounded-2xl",
+        "button": "rounded-full",
+        "input": "rounded-xl"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 py-3 font-medium transition-all duration-300 shadow-lg shadow-primary/20",
+        "secondary": "bg-white border border-border text-foreground hover:bg-secondary/50 rounded-full px-6 py-3 font-medium transition-all duration-300",
+        "accent": "bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-8 py-3 shadow-md"
+      },
+      "cards": {
+        "listing": "bg-white rounded-2xl border border-border/50 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 overflow-hidden group",
+        "feature": "bg-stone-50/50 rounded-3xl p-8 border border-white/50 backdrop-blur-sm"
+      },
+      "inputs": {
+        "search_bar": "h-14 md:h-16 pl-6 pr-4 rounded-full border-2 border-transparent bg-white shadow-[0_4px_20px_rgba(0,0,0,0.04)] focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all font-medium text-lg placeholder:text-muted-foreground/50",
+        "filter_select": "h-10 rounded-full bg-white border border-border px-4 text-sm font-medium hover:border-primary/50 transition-colors"
+      },
+      "navigation": {
+        "header": "fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-stone-200/50 h-20 flex items-center"
+      }
+    },
+    "visual_enhancers": {
+      "shadows": {
+        "soft": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
+        "floating": "shadow-[0_20px_50px_rgb(0,0,0,0.08)]"
+      },
+      "textures": {
+        "noise": "bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20",
+        "glass": "backdrop-blur-xl bg-white/70"
+      },
+      "animations": {
+        "hover_lift": "hover:-translate-y-1 transition-transform duration-300 ease-out",
+        "fade_in": "animate-in fade-in slide-in-from-bottom-4 duration-700"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px, Rounded, Soft",
+      "usage": {
+        "medical": "Stethoscope, Activity, Heart, Pill",
+        "real_estate": "MapPin, Building, Home, Key",
+        "ui": "Search, ChevronDown, Filter, User, Menu"
+      }
+    },
+    "images": {
+      "style": "High-quality, naturally lit, diverse medical professionals, clean modern interiors. No generic stock 'handshakes'.",
+      "urls": {
+        "hero_background": "https://images.unsplash.com/photo-1748887522257-bf1053e860f9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBvZmZpY2UlMjBpbnRlcmlvciUyMGJyaWdodHxlbnwwfHx8fDE3NzA2NTUzMzJ8MA&ixlib=rb-4.1.0&q=85",
+        "doctor_consultation": "https://images.unsplash.com/photo-1663755787934-3742b0f5983a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwzfHxkb2N0b3IlMjBjb25zdWx0YXRpb24lMjBjb2xsYWJvcmF0aW9uJTIwc21pbGluZ3xlbnwwfHx8fDE3NzA2NTUzMTh8MA&ixlib=rb-4.1.0&q=85",
+        "modern_workspace": "https://images.unsplash.com/photo-1750306957357-bf6e1f8e7da8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBvZmZpY2UlMjBpbnRlcmlvciUyMGJyaWdodHxlbnwwfHx8fDE3NzA2NTUzMzJ8MA&ixlib=rb-4.1.0&q=85",
+        "waiting_area": "https://images.unsplash.com/photo-1615462696310-09736533dbb8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxkb2N0b3IlMjBjb25zdWx0YXRpb24lMjBjb2xsYWJvcmF0aW9uJTIwc21pbGluZ3xlbnwwfHx8fDE3NzA2NTUzMTh8MA&ixlib=rb-4.1.0&q=85"
+      }
+    },
+    "instructions_to_main_agent": [
+      "IMPLEMENTATION: Use Shadcn UI for all complex interactions (Select, Dialog, DatePicker) but styled with the 'cards.listing' or 'inputs.search_bar' classes defined above.",
+      "LAYOUT: The Search Results page must use the 'split_view' grid. Left side: Scrollable list of cards. Right side: Sticky Map container.",
+      "AUTH: The Sign Up flow must include a step for 'RPPS Validation' (11 digits). Use a visual progress bar.",
+      "DASHBOARD: Do not make it boring. Use 'cards.feature' style for stats widgets. Use emerald-900 for the sidebar to create contrast.",
+      "THEME: FORCE LIGHT MODE. Do not implement dark mode for this iteration. Medical apps need light/clean aesthetics.",
+      "CONTENT: All placeholder text must be medical-specific (e.g., 'Cabinet de kinésithérapie', 'Maison de santé Paris 12', 'Dr. Sophie Martin')."
+    ],
+     "universal_guidelines": [
+        "Do not use gradients for dark colors.",
+        "Don't make generic centered layouts.",
+        "Create depth through layered design elements with z-index hierarchy.",
+        "Use glass-morphism effects with backdrop filters.",
+        "Every interaction needs micro-animations.",
+        "Use 2-3x more spacing than feels comfortable.",
+        "Prioritize using pre-existing components from src/components/ui.",
+        "Components MUST use named exports.",
+        "Pages MUST use default exports."
+    ]
+  }
+}
