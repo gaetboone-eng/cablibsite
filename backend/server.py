@@ -40,7 +40,7 @@ class UserRegister(BaseModel):
     last_name: str
     rpps_number: str
     profession: str
-    user_type: str  # "locataire" or "proprietaire"
+    user_type: str  # "locataire", "proprietaire", or "admin"
 
 class UserLogin(BaseModel):
     email: EmailStr
