@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
+import { Logo } from './Logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +14,11 @@ export const Header = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 w-full z-50 glass border-b border-stone-200/50 h-20 flex items-center" data-testid="main-header">
+    <header className="fixed top-0 w-full z-50 glass border-b border-border h-20 flex items-center" data-testid="main-header">
       <div className="container mx-auto px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group" data-testid="logo-link">
-          <div className="bg-primary rounded-xl p-2.5 shadow-lg shadow-primary/20 group-hover:shadow-primary/30 transition-all duration-300">
-            <Building2 className="h-6 w-6 text-white" />
+          <div className="transition-transform duration-300 group-hover:scale-105">
+            <Logo size="md" />
           </div>
           <span className="text-2xl font-bold tracking-tight text-foreground">CabLib</span>
         </Link>
@@ -37,12 +38,18 @@ export const Header = ({ user, onLogout }) => {
                   <span>Profil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => navigate(user.user_type === 'locataire' ? '/dashboard-locataire' : '/dashboard-proprietaire')}
+                  onClick={() => navigate(user.user_type === 'locataire' ? '/dashboard-locataire' : user.user_type === 'admin' ? '/analytics' : '/dashboard-proprietaire')}
                   data-testid="dashboard-menu-item"
                 >
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Tableau de bord</span>
                 </DropdownMenuItem>
+                {user.user_type === 'admin' && (
+                  <DropdownMenuItem onClick={() => navigate('/analytics')} data-testid="analytics-menu-item">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    <span>Analytics</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={onLogout} className="text-destructive" data-testid="logout-menu-item">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Déconnexion</span>
