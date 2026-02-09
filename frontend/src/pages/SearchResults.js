@@ -6,7 +6,8 @@ import { SearchBar } from '../components/SearchBar';
 import { FilterPanel } from '../components/FilterPanel';
 import { ListingCard } from '../components/ListingCard';
 import { MapView } from '../components/MapView';
-import { Loader2 } from 'lucide-react';
+import { Loader2, SlidersHorizontal, X } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -16,8 +17,10 @@ export default function SearchResults({ user, onLogout }) {
   const [searchParams] = useSearchParams();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
+    radius: searchParams.get('radius') || '',
     structure_type: '',
     min_size: '',
     max_rent: '',
@@ -26,8 +29,9 @@ export default function SearchResults({ user, onLogout }) {
 
   useEffect(() => {
     const cityParam = searchParams.get('city');
+    const radiusParam = searchParams.get('radius');
     if (cityParam) {
-      setFilters(prev => ({ ...prev, city: cityParam }));
+      setFilters(prev => ({ ...prev, city: cityParam, radius: radiusParam || '' }));
     }
   }, [searchParams]);
 
@@ -63,52 +67,79 @@ export default function SearchResults({ user, onLogout }) {
       <Header user={user} onLogout={onLogout} />
 
       <div className="pt-24 pb-6 px-6">
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-6xl">
           <SearchBar initialValue={filters.city} large={false} />
+          
+          <div className="flex items-center gap-4 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="rounded-full gap-2"
+              data-testid="toggle-filters-button"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtres avancés
+              {showFilters && <X className="h-4 w-4" />}
+            </Button>
+            
+            <div className="text-sm text-muted-foreground">
+              {loading ? 'Chargement...' : `${listings.length} annonce${listings.length > 1 ? 's' : ''} trouvée${listings.length > 1 ? 's' : ''}`}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-0 h-[calc(100vh-180px)]">
-        {/* Left: Listings */}
-        <div className="overflow-y-auto hide-scrollbar px-6" data-testid="listings-container">
-          <div className="container mx-auto max-w-4xl">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-foreground">
-                {loading ? 'Chargement...' : `${listings.length} résultat${listings.length > 1 ? 's' : ''}`}
-              </h2>
-              {filters.city && (
-                <p className="text-muted-foreground" data-testid="search-city-display">
-                  à {filters.city}
-                </p>
-              )}
-            </div>
-
-            <div className="mb-6">
-              <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : listings.length === 0 ? (
-              <div className="text-center py-20" data-testid="no-results">
-                <p className="text-lg text-muted-foreground">Aucune annonce trouvée</p>
-                <p className="text-sm text-muted-foreground mt-2">Essayez de modifier vos filtres</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
-                {listings.map(listing => (
-                  <ListingCard key={listing.id} listing={listing} />
-                ))}
-              </div>
-            )}
+      {/* Filters Panel (Collapsible) */}
+      {showFilters && (
+        <div className="px-6 pb-6">
+          <div className="container mx-auto max-w-6xl">
+            <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
           </div>
         </div>
+      )}
 
-        {/* Right: Map */}
-        <div className="hidden lg:block sticky top-0 h-[calc(100vh-180px)] p-6" data-testid="map-view">
-          <MapView listings={listings} />
+      {/* Main Content: Map First, then List */}
+      <div className="px-6 pb-6">
+        <div className="container mx-auto max-w-7xl">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              {/* Large Map */}
+              <div className="mb-8" data-testid="map-container-main">
+                <div className="bg-white rounded-2xl p-4 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4 text-foreground">
+                    Carte des annonces
+                    {filters.city && ` - ${filters.city}`}
+                  </h2>
+                  <div className="h-[600px]">
+                    <MapView listings={listings} />
+                  </div>
+                </div>
+              </div>
+
+              {/* List of Listings */}
+              <div>
+                <h2 className="text-2xl font-semibold mb-6 text-foreground">
+                  Liste des annonces
+                </h2>
+                {listings.length === 0 ? (
+                  <div className="text-center py-20 bg-white rounded-2xl" data-testid="no-results">
+                    <p className="text-lg text-muted-foreground">Aucune annonce trouvée</p>
+                    <p className="text-sm text-muted-foreground mt-2">Essayez de modifier vos filtres</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {listings.map(listing => (
+                      <ListingCard key={listing.id} listing={listing} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

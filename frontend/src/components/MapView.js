@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin } from 'lucide-react';
-import { createRoot } from 'react-dom/client';
+import { Link } from 'react-router-dom';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,11 +12,10 @@ L.Icon.Default.mergeOptions({
 });
 
 // Custom marker icon
-const createCustomIcon = () => {
-  const iconHtml = document.createElement('div');
-  iconHtml.className = 'custom-marker';
-  iconHtml.innerHTML = `
-    <div class="flex items-center justify-center w-10 h-10 bg-primary rounded-full shadow-lg" style="cursor: pointer;">
+const createCustomIcon = (isFeatured) => {
+  const color = isFeatured ? '#c2410c' : '#065f46';
+  const iconHtml = `
+    <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-lg transition-transform hover:scale-110" style="background-color: ${color}; cursor: pointer;">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
         <circle cx="12" cy="10" r="3"/>
@@ -26,7 +24,7 @@ const createCustomIcon = () => {
   `;
   
   return L.divIcon({
-    html: iconHtml.innerHTML,
+    html: iconHtml,
     className: 'custom-leaflet-marker',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
@@ -37,7 +35,7 @@ const createCustomIcon = () => {
 export const MapView = ({ listings, center = [46.603354, 1.888334], zoom = 6 }) => {
   const mapRef = useRef(null);
 
-  // Geocoding cache (in real app, use actual geocoding API)
+  // Geocoding cache for French cities
   const cityCoordinates = {
     'Paris': [48.8566, 2.3522],
     'Lyon': [45.7640, 4.8357],
@@ -51,6 +49,14 @@ export const MapView = ({ listings, center = [46.603354, 1.888334], zoom = 6 }) 
     'Lille': [50.6292, 3.0573],
     'Rennes': [48.1173, -1.6778],
     'Reims': [49.2583, 4.0317],
+    'Le Havre': [49.4944, 0.1079],
+    'Saint-Étienne': [45.4397, 4.3872],
+    'Toulon': [43.1242, 5.9280],
+    'Grenoble': [45.1885, 5.7245],
+    'Dijon': [47.3220, 5.0415],
+    'Angers': [47.4784, -0.5632],
+    'Nîmes': [43.8367, 4.3601],
+    'Villeurbanne': [45.7667, 4.8794]
   };
 
   const getCoordinates = (city) => {
@@ -61,8 +67,11 @@ export const MapView = ({ listings, center = [46.603354, 1.888334], zoom = 6 }) 
     if (mapRef.current && listings.length > 0) {
       const bounds = listings.map(listing => getCoordinates(listing.city));
       if (bounds.length > 0) {
-        const map = mapRef.current;
-        map.fitBounds(bounds, { padding: [50, 50] });
+        try {
+          mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+        } catch (e) {
+          console.error('Error fitting bounds:', e);
+        }
       }
     }
   }, [listings]);
@@ -85,22 +94,40 @@ export const MapView = ({ listings, center = [46.603354, 1.888334], zoom = 6 }) 
             <Marker 
               key={listing.id} 
               position={coords}
-              icon={createCustomIcon()}
+              icon={createCustomIcon(listing.is_featured)}
             >
-              <Popup className="custom-popup">
+              {/* Tooltip on hover */}
+              <Tooltip direction="top" offset={[0, -30]} opacity={1} className="custom-tooltip">
                 <div className="p-2 min-w-[200px]">
-                  <h4 className="font-semibold text-base mb-1">{listing.title}</h4>
-                  <p className="text-sm text-muted-foreground mb-2">{listing.city}</p>
+                  <h4 className="font-semibold text-sm mb-1">{listing.title}</h4>
+                  <p className="text-xs text-muted-foreground mb-1">{listing.city} • {listing.size}m²</p>
                   <div className="flex items-baseline gap-1">
+                    <span className="text-base font-bold text-primary">{listing.monthly_rent}€</span>
+                    <span className="text-xs text-muted-foreground">/mois</span>
+                  </div>
+                </div>
+              </Tooltip>
+
+              {/* Popup on click */}
+              <Popup className="custom-popup">
+                <div className="p-2 min-w-[220px]">
+                  <h4 className="font-semibold text-base mb-2">{listing.title}</h4>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    📍 {listing.city} • {listing.structure_type}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    🏠 {listing.size} m²
+                  </p>
+                  <div className="flex items-baseline gap-1 mb-3">
                     <span className="text-lg font-bold text-primary">{listing.monthly_rent}€</span>
                     <span className="text-xs text-muted-foreground">/mois</span>
                   </div>
-                  <a 
-                    href={`/listing/${listing.id}`}
-                    className="mt-2 inline-block text-sm text-primary hover:underline"
+                  <Link 
+                    to={`/listing/${listing.id}`}
+                    className="inline-block w-full text-center bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary/90 transition-colors"
                   >
-                    Voir détails →
-                  </a>
+                    Voir les détails →
+                  </Link>
                 </div>
               </Popup>
             </Marker>
