@@ -63,3 +63,14 @@
 .leaflet-popup-content-wrapper {
   @apply rounded-xl shadow-lg;
 }
+
+.custom-leaflet-marker {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 1000 !important;
+}
+
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+  pointer-events: auto !important;
+}
