@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, LogOut, LayoutDashboard, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Logo } from './Logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +13,12 @@ export const Header = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 w-full z-50 glass border-b border-border h-20 flex items-center" data-testid="main-header">
+    <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-border h-20 flex items-center shadow-sm" data-testid="main-header">
       <div className="container mx-auto px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group" data-testid="logo-link">
-          <div className="transition-transform duration-300 group-hover:scale-105">
-            <Logo size="md" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight text-foreground">CabLib</span>
+        <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
+          <span className="text-3xl font-bold tracking-tight text-primary" style={{ fontFamily: 'Source Sans Pro, sans-serif', letterSpacing: '-0.02em' }}>
+            CabLib
+          </span>
         </Link>
 
         <nav className="flex items-center gap-4">
