@@ -369,6 +369,54 @@ async def remove_favorite(listing_id: str, current_user: dict = Depends(get_curr
         raise HTTPException(status_code=404, detail="Favorite not found")
     return {"message": "Favorite removed"}
 
+# Matching routes
+@api_router.get("/matches", response_model=List[MatchResult])
+async def get_matches(current_user: dict = Depends(get_current_user)):
+    """Get recommended listings based on user profile with compatibility scores"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Only practitioners can access matches")
+    
+    # Get all active listings
+    listings = await db.listings.find({}, {"_id": 0}).to_list(100)
+    
+    # Calculate scores for each listing
+    matches = []
+    for listing in listings:
+        score, reasons = calculate_match_score(current_user, listing)
+        if score > 0:  # Only include listings with some match
+            matches.append({
+                "listing": Listing(**listing),
+                "score": score,
+                "reasons": reasons
+            })
+    
+    # Sort by score descending
+    matches.sort(key=lambda x: x["score"], reverse=True)
+    
+    return [MatchResult(**match) for match in matches]
+
+@api_router.get("/matches/top")
+async def get_top_matches(limit: int = 3, current_user: dict = Depends(get_current_user)):
+    """Get top N matched listings for dashboard"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Only practitioners can access matches")
+    
+    listings = await db.listings.find({}, {"_id": 0}).to_list(100)
+    
+    matches = []
+    for listing in listings:
+        score, reasons = calculate_match_score(current_user, listing)
+        if score > 0:
+            matches.append({
+                "listing": Listing(**listing),
+                "score": score,
+                "reasons": reasons
+            })
+    
+    matches.sort(key=lambda x: x["score"], reverse=True)
+    
+    return [MatchResult(**match) for match in matches[:limit]]
+
 # Search Log Models
 class SearchLogCreate(BaseModel):
     city: Optional[str] = None
