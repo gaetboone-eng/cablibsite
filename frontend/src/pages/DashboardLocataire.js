@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from '../components/Header';
 import { ListingCard } from '../components/ListingCard';
-import { Heart, Search, Loader2, Sparkles } from 'lucide-react';
+import { Heart, Search, Loader2, Sparkles, Calendar, MapPin, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
