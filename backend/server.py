@@ -107,6 +107,30 @@ class Favorite(BaseModel):
     listing_id: str
     created_at: str
 
+class AlertCreate(BaseModel):
+    name: str
+    city: Optional[str] = None
+    radius: Optional[int] = None
+    structure_type: Optional[str] = None
+    profession: Optional[str] = None
+    max_rent: Optional[int] = None
+    min_size: Optional[int] = None
+
+class Alert(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    name: str
+    city: Optional[str]
+    radius: Optional[int]
+    structure_type: Optional[str]
+    profession: Optional[str]
+    max_rent: Optional[int]
+    min_size: Optional[int]
+    active: bool
+    created_at: str
+    last_checked: Optional[str]
+
 class MatchResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
     listing: Listing
