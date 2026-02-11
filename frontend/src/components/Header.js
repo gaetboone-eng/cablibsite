@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, BarChart3, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -42,6 +42,12 @@ export const Header = ({ user, onLogout }) => {
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   <span>Tableau de bord</span>
                 </DropdownMenuItem>
+                {user.user_type === 'locataire' && (
+                  <DropdownMenuItem onClick={() => navigate('/alerts')} data-testid="alerts-menu-item">
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Mes alertes</span>
+                  </DropdownMenuItem>
+                )}
                 {user.user_type === 'admin' && (
                   <DropdownMenuItem onClick={() => navigate('/analytics')} data-testid="analytics-menu-item">
                     <BarChart3 className="mr-2 h-4 w-4" />
