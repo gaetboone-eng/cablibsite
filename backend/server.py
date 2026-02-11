@@ -216,6 +216,10 @@ async def register(user_data: UserRegister):
         "rpps_number": user_data.rpps_number,
         "profession": user_data.profession,
         "user_type": user_data.user_type,
+        "preferred_city": user_data.preferred_city,
+        "max_budget": user_data.max_budget,
+        "min_size": user_data.min_size,
+        "preferred_structure_type": user_data.preferred_structure_type,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
