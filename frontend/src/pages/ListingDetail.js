@@ -258,6 +258,15 @@ export default function ListingDetail({ user, onLogout }) {
                   </Button>
 
                   <Button
+                    onClick={() => setShowVisitModal(true)}
+                    className="w-full bg-accent hover:bg-accent/90 text-white rounded-full py-6 shadow-lg"
+                    data-testid="schedule-visit-button"
+                  >
+                    <Calendar className="mr-2 h-5 w-5" />
+                    Planifier une visite
+                  </Button>
+
+                  <Button
                     onClick={toggleFavorite}
                     variant="outline"
                     className="w-full rounded-full py-6"
@@ -270,7 +279,7 @@ export default function ListingDetail({ user, onLogout }) {
                   <Button
                     onClick={() => setShowCalculator(true)}
                     variant="outline"
-                    className="w-full rounded-full py-6 border-accent text-accent hover:bg-accent/10"
+                    className="w-full rounded-full py-6 border-primary text-primary hover:bg-primary/10"
                     data-testid="calculator-button"
                   >
                     <Calculator className="mr-2 h-5 w-5" />
@@ -286,6 +295,12 @@ export default function ListingDetail({ user, onLogout }) {
       <RentabilityCalculator
         isOpen={showCalculator}
         onClose={() => setShowCalculator(false)}
+        listing={listing}
+      />
+      
+      <ScheduleVisitModal
+        isOpen={showVisitModal}
+        onClose={() => setShowVisitModal(false)}
         listing={listing}
       />
     </div>
