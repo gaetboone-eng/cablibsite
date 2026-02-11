@@ -426,6 +426,100 @@ async def get_top_matches(limit: int = 3, current_user: dict = Depends(get_curre
     
     return [MatchResult(**match) for match in matches[:limit]]
 
+# Alert routes
+@api_router.post("/alerts", response_model=Alert)
+async def create_alert(alert_data: AlertCreate, current_user: dict = Depends(get_current_user)):
+    """Create a new search alert"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Only practitioners can create alerts")
+    
+    alert_id = str(uuid.uuid4())
+    alert_doc = {
+        "id": alert_id,
+        "user_id": current_user["id"],
+        "name": alert_data.name,
+        "city": alert_data.city,
+        "radius": alert_data.radius,
+        "structure_type": alert_data.structure_type,
+        "profession": alert_data.profession,
+        "max_rent": alert_data.max_rent,
+        "min_size": alert_data.min_size,
+        "active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "last_checked": None
+    }
+    await db.alerts.insert_one(alert_doc)
+    
+    return Alert(**alert_doc)
+
+@api_router.get("/alerts", response_model=List[Alert])
+async def get_alerts(current_user: dict = Depends(get_current_user)):
+    """Get user's alerts"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Only practitioners can access alerts")
+    
+    alerts = await db.alerts.find({"user_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return [Alert(**alert) for alert in alerts]
+
+@api_router.get("/alerts/{alert_id}/matches")
+async def get_alert_matches(alert_id: str, current_user: dict = Depends(get_current_user)):
+    """Get new listings matching this alert"""
+    alert = await db.alerts.find_one({"id": alert_id, "user_id": current_user["id"]}, {"_id": 0})
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    # Get listings created after alert creation
+    alert_created = datetime.fromisoformat(alert["created_at"])
+    
+    # Build query from alert criteria
+    query = {}
+    if alert.get("city"):
+        query["city"] = {"$regex": alert["city"], "$options": "i"}
+    if alert.get("structure_type"):
+        query["structure_type"] = alert["structure_type"]
+    if alert.get("max_rent"):
+        query["monthly_rent"] = {"$lte": alert["max_rent"]}
+    if alert.get("min_size"):
+        query["size"] = {"$gte": alert["min_size"]}
+    if alert.get("profession"):
+        query["profiles_searched"] = {"$regex": alert["profession"], "$options": "i"}
+    
+    listings = await db.listings.find(query, {"_id": 0}).to_list(100)
+    
+    # Filter listings created after alert
+    new_listings = []
+    for listing in listings:
+        listing_created = datetime.fromisoformat(listing.get("created_at", alert_created.isoformat()))
+        if listing_created > alert_created:
+            new_listings.append(listing)
+    
+    return {
+        "alert": Alert(**alert),
+        "new_listings_count": len(new_listings),
+        "listings": [Listing(**l) for l in new_listings]
+    }
+
+@api_router.put("/alerts/{alert_id}")
+async def update_alert(alert_id: str, active: bool, current_user: dict = Depends(get_current_user)):
+    """Toggle alert active status"""
+    result = await db.alerts.update_one(
+        {"id": alert_id, "user_id": current_user["id"]},
+        {"$set": {"active": active}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    alert = await db.alerts.find_one({"id": alert_id}, {"_id": 0})
+    return Alert(**alert)
+
+@api_router.delete("/alerts/{alert_id}")
+async def delete_alert(alert_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete an alert"""
+    result = await db.alerts.delete_one({"id": alert_id, "user_id": current_user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return {"message": "Alert deleted"}
+
 # Search Log Models
 class SearchLogCreate(BaseModel):
     city: Optional[str] = None
