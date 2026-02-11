@@ -6,7 +6,8 @@ import { SearchBar } from '../components/SearchBar';
 import { FilterPanel } from '../components/FilterPanel';
 import { ListingCard } from '../components/ListingCard';
 import { MapView } from '../components/MapView';
-import { Loader2, SlidersHorizontal, X } from 'lucide-react';
+import { CreateAlertModal } from '../components/CreateAlertModal';
+import { Loader2, SlidersHorizontal, X, Bell } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 
@@ -18,6 +19,7 @@ export default function SearchResults({ user, onLogout }) {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
     radius: searchParams.get('radius') || '',
