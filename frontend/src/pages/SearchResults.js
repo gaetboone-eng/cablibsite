@@ -103,6 +103,17 @@ export default function SearchResults({ user, onLogout }) {
               {showFilters && <X className="h-4 w-4" />}
             </Button>
             
+            {user && user.user_type === 'locataire' && (
+              <Button
+                variant="outline"
+                onClick={() => setShowAlertModal(true)}
+                className="rounded-full gap-2 border-primary text-primary hover:bg-primary/10"
+              >
+                <Bell className="h-4 w-4" />
+                Créer une alerte
+              </Button>
+            )}
+            
             <div className="text-sm text-muted-foreground">
               {loading ? 'Chargement...' : `${listings.length} annonce${listings.length > 1 ? 's' : ''} trouvée${listings.length > 1 ? 's' : ''}`}
             </div>
