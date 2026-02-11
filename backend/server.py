@@ -102,6 +102,65 @@ class Favorite(BaseModel):
     listing_id: str
     created_at: str
 
+class MatchResult(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    listing: Listing
+    score: int
+    reasons: List[str]
+
+# Matching Algorithm
+def calculate_match_score(user: dict, listing: dict) -> tuple[int, List[str]]:
+    """
+    Calculate compatibility score between a practitioner and a listing
+    Returns: (score out of 100, list of matching reasons)
+    """
+    score = 0
+    reasons = []
+    
+    # 1. Geographic match (30 points)
+    # For now, exact city match. Could be enhanced with distance calculation
+    if listing.get("city", "").lower() == user.get("preferred_city", "").lower():
+        score += 30
+        reasons.append(f"Localisation : {listing['city']}")
+    
+    # 2. Budget match (25 points)
+    user_budget = user.get("max_budget", 0)
+    listing_rent = listing.get("monthly_rent", 0)
+    if user_budget > 0 and listing_rent > 0:
+        if listing_rent <= user_budget:
+            budget_diff = abs(listing_rent - user_budget) / user_budget
+            if budget_diff <= 0.2:  # Within 20%
+                score += 25
+                reasons.append(f"Budget adapté : {listing_rent}€/mois")
+            elif budget_diff <= 0.5:
+                score += 15
+                reasons.append(f"Budget acceptable : {listing_rent}€/mois")
+    
+    # 3. Profession match (20 points)
+    user_profession = user.get("profession", "").lower()
+    profiles_searched = [p.lower() for p in listing.get("profiles_searched", [])]
+    if user_profession and any(user_profession in prof or prof in user_profession for prof in profiles_searched):
+        score += 20
+        reasons.append(f"Profil recherché : {user.get('profession')}")
+    
+    # 4. Structure type match (15 points)
+    user_pref_structure = user.get("preferred_structure_type", "")
+    listing_structure = listing.get("structure_type", "")
+    if user_pref_structure and user_pref_structure == listing_structure:
+        score += 15
+        reasons.append(f"Type de structure : {listing_structure}")
+    elif not user_pref_structure:
+        score += 10  # Partial points if no preference
+    
+    # 5. Size match (10 points)
+    user_min_size = user.get("min_size", 0)
+    listing_size = listing.get("size", 0)
+    if user_min_size > 0 and listing_size >= user_min_size:
+        score += 10
+        reasons.append(f"Surface suffisante : {listing_size}m²")
+    
+    return score, reasons
+
 # Helper functions
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
