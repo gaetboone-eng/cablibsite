@@ -129,6 +129,49 @@ export default function DashboardLocataire({ user, onLogout }) {
             </div>
           </div>
 
+          {/* Upcoming Visits */}
+          {visits.length > 0 && (
+            <div className="mb-10">
+              <h2 className="text-2xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                <Calendar className="h-6 w-6 text-primary" />
+                Mes visites programmées
+              </h2>
+              <div className="space-y-3">
+                {visits.slice(0, 3).map((visit) => (
+                  <div
+                    key={visit.id}
+                    className="bg-white rounded-xl p-5 shadow-sm border border-border hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground mb-2">
+                          Visite programmée
+                        </p>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>{new Date(visit.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{visit.time}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        visit.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                        visit.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {visit.status === 'confirmed' ? 'Confirmée' : visit.status === 'cancelled' ? 'Annulée' : 'En attente'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Favorites */}
           <div>
             <h2 className="text-2xl font-semibold text-foreground mb-6">Mes favoris</h2>
