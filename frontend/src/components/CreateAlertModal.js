@@ -100,14 +100,14 @@ export const CreateAlertModal = ({ isOpen, onClose, initialCriteria = {} }) => {
           <div>
             <Label htmlFor="alert-structure">Type de structure</Label>
             <Select 
-              value={formData.structure_type} 
-              onValueChange={(value) => setFormData({ ...formData, structure_type: value })}
+              value={formData.structure_type || "all"} 
+              onValueChange={(value) => setFormData({ ...formData, structure_type: value === "all" ? "" : value })}
             >
               <SelectTrigger id="alert-structure" className="rounded-xl mt-2">
                 <SelectValue placeholder="Tous les types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
+                <SelectItem value="all">Tous les types</SelectItem>
                 <SelectItem value="MSP">Maison de Santé Pluriprofessionnelle</SelectItem>
                 <SelectItem value="Cabinet">Cabinet médical</SelectItem>
               </SelectContent>
