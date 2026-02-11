@@ -152,6 +152,22 @@ class Visit(BaseModel):
     status: str  # "pending", "confirmed", "cancelled"
     created_at: str
 
+class DocumentUpload(BaseModel):
+    filename: str
+    file_type: str
+    file_size: int
+
+class Document(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    filename: str
+    original_filename: str
+    file_type: str
+    file_size: int
+    file_url: str
+    uploaded_at: str
+
 class MatchResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
     listing: Listing
