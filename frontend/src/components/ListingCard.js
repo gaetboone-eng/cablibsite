@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, Home } from 'lucide-react';
+import { MapPin, Users, TrendingUp, Home, Sparkles } from 'lucide-react';
 
-export const ListingCard = ({ listing }) => {
+export const ListingCard = ({ listing, matchScore, matchReasons }) => {
   const mainImage = listing.photos && listing.photos.length > 0 
     ? listing.photos[0] 
     : 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800';
@@ -10,7 +10,7 @@ export const ListingCard = ({ listing }) => {
   return (
     <Link 
       to={`/listing/${listing.id}`}
-      className="bg-white rounded-2xl border border-border/50 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 overflow-hidden group"
+      className="bg-white rounded-2xl border border-border/50 shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden group"
       data-testid="listing-card"
     >
       <div className="relative h-48 overflow-hidden">
@@ -27,6 +27,13 @@ export const ListingCard = ({ listing }) => {
         <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium" data-testid="structure-type-badge">
           {listing.structure_type}
         </div>
+        
+        {matchScore !== undefined && matchScore > 0 && (
+          <div className="absolute bottom-3 right-3 bg-primary text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg flex items-center gap-1" data-testid="match-score-badge">
+            <Sparkles className="h-4 w-4" />
+            {matchScore}% match
+          </div>
+        )}
       </div>
 
       <div className="p-5">
@@ -38,6 +45,17 @@ export const ListingCard = ({ listing }) => {
           <MapPin className="h-4 w-4" />
           <span className="text-sm" data-testid="listing-city">{listing.city}</span>
         </div>
+
+        {matchReasons && matchReasons.length > 0 && (
+          <div className="mb-3 p-2 bg-primary/5 rounded-lg">
+            <p className="text-xs font-medium text-primary mb-1">Pourquoi ce match ?</p>
+            <ul className="text-xs text-muted-foreground space-y-0.5">
+              {matchReasons.slice(0, 2).map((reason, idx) => (
+                <li key={idx}>• {reason}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
           <div className="flex items-center gap-1.5">
