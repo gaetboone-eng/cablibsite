@@ -10,6 +10,7 @@ import DashboardProprietaire from './pages/DashboardProprietaire';
 import ProfilePage from './pages/ProfilePage';
 import CreateListing from './pages/CreateListing';
 import AnalyticsPage from './pages/AnalyticsPage';
+import AlertsPage from './pages/AlertsPage';
 import { Toaster } from './components/ui/sonner';
 
 function App() {
@@ -65,6 +66,10 @@ function App() {
           <Route 
             path="/analytics" 
             element={user && user.user_type === 'admin' ? <AnalyticsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
+          />
+          <Route 
+            path="/alerts" 
+            element={user && user.user_type === 'locataire' ? <AlertsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
           <Route path="/profile" element={user ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         </Routes>
