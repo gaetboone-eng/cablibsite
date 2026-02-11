@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from '../components/Header';
+import { RentabilityCalculator } from '../components/RentabilityCalculator';
 import { Button } from '../components/ui/button';
-import { MapPin, Home, Users, TrendingUp, Mail, Phone, Heart, ArrowLeft, Building2 } from 'lucide-react';
+import { MapPin, Home, Users, TrendingUp, Mail, Heart, ArrowLeft, Building2, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export default function ListingDetail({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     fetchListing();
