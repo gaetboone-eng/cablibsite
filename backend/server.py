@@ -565,6 +565,81 @@ async def delete_alert(alert_id: str, current_user: dict = Depends(get_current_u
         raise HTTPException(status_code=404, detail="Alert not found")
     return {"message": "Alert deleted"}
 
+# Visit routes
+@api_router.post("/visits", response_model=Visit)
+async def create_visit(visit_data: VisitCreate, current_user: dict = Depends(get_current_user)):
+    """Request a visit for a listing"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Only practitioners can request visits")
+    
+    # Get listing to find owner
+    listing = await db.listings.find_one({"id": visit_data.listing_id}, {"_id": 0})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    visit_id = str(uuid.uuid4())
+    visit_doc = {
+        "id": visit_id,
+        "listing_id": visit_data.listing_id,
+        "practitioner_id": current_user["id"],
+        "practitioner_name": f"{current_user['first_name']} {current_user['last_name']}",
+        "practitioner_email": current_user["email"],
+        "practitioner_profession": current_user["profession"],
+        "owner_id": listing["owner_id"],
+        "date": visit_data.date,
+        "time": visit_data.time,
+        "message": visit_data.message,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.visits.insert_one(visit_doc)
+    
+    return Visit(**visit_doc)
+
+@api_router.get("/visits/practitioner")
+async def get_practitioner_visits(current_user: dict = Depends(get_current_user)):
+    """Get visits requested by practitioner"""
+    visits = await db.visits.find({"practitioner_id": current_user["id"]}, {"_id": 0}).sort("date", 1).to_list(100)
+    return [Visit(**visit) for visit in visits]
+
+@api_router.get("/visits/owner")
+async def get_owner_visits(current_user: dict = Depends(get_current_user)):
+    """Get visit requests for owner's listings"""
+    if current_user.get("user_type") != "proprietaire":
+        raise HTTPException(status_code=403, detail="Only owners can access this")
+    
+    visits = await db.visits.find({"owner_id": current_user["id"]}, {"_id": 0}).sort("date", 1).to_list(100)
+    return [Visit(**visit) for visit in visits]
+
+@api_router.put("/visits/{visit_id}/status")
+async def update_visit_status(visit_id: str, status: str, current_user: dict = Depends(get_current_user)):
+    """Update visit status (confirm/cancel)"""
+    visit = await db.visits.find_one({"id": visit_id}, {"_id": 0})
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    
+    # Only owner can confirm, both can cancel
+    if status == "confirmed" and visit["owner_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Only owner can confirm visits")
+    
+    await db.visits.update_one({"id": visit_id}, {"$set": {"status": status}})
+    updated_visit = await db.visits.find_one({"id": visit_id}, {"_id": 0})
+    return Visit(**updated_visit)
+
+@api_router.delete("/visits/{visit_id}")
+async def delete_visit(visit_id: str, current_user: dict = Depends(get_current_user)):
+    """Cancel/delete a visit"""
+    result = await db.visits.delete_one({
+        "id": visit_id,
+        "$or": [
+            {"practitioner_id": current_user["id"]},
+            {"owner_id": current_user["id"]}
+        ]
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Visit not found")
+    return {"message": "Visit cancelled"}
+
 # Search Log Models
 class SearchLogCreate(BaseModel):
     city: Optional[str] = None
