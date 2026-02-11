@@ -174,6 +174,18 @@ export default function SearchResults({ user, onLogout }) {
           )}
         </div>
       </div>
+      
+      <CreateAlertModal
+        isOpen={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        initialCriteria={{
+          city: filters.city,
+          structure_type: filters.structure_type,
+          profession: filters.profession,
+          max_rent: filters.max_rent,
+          min_size: filters.min_size
+        }}
+      />
     </div>
   );
 }
