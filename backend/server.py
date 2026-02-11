@@ -131,6 +131,27 @@ class Alert(BaseModel):
     created_at: str
     last_checked: Optional[str]
 
+class VisitCreate(BaseModel):
+    listing_id: str
+    date: str
+    time: str
+    message: Optional[str] = None
+
+class Visit(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    listing_id: str
+    practitioner_id: str
+    practitioner_name: str
+    practitioner_email: str
+    practitioner_profession: str
+    owner_id: str
+    date: str
+    time: str
+    message: Optional[str]
+    status: str  # "pending", "confirmed", "cancelled"
+    created_at: str
+
 class MatchResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
     listing: Listing
