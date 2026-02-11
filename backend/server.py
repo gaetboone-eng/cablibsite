@@ -569,37 +569,6 @@ class SearchStats(BaseModel):
     searches_by_city: dict
     recent_searches: List[SearchLog]
 
-class AlertCreate(BaseModel):
-    name: str
-    city: Optional[str] = None
-    radius: Optional[int] = None
-    structure_type: Optional[str] = None
-    profession: Optional[str] = None
-    max_rent: Optional[int] = None
-    min_size: Optional[int] = None
-
-class Alert(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str
-    user_id: str
-    name: str
-    city: Optional[str]
-    radius: Optional[int]
-    structure_type: Optional[str]
-    profession: Optional[str]
-    max_rent: Optional[int]
-    min_size: Optional[int]
-    active: bool
-    created_at: str
-    last_checked: Optional[str]
-
-class AlertMatch(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    alert_id: str
-    listing: Listing
-    matched_at: str
-    seen: bool
-
 # Search Log routes
 @api_router.post("/search-logs", response_model=SearchLog)
 async def log_search(search_data: SearchLogCreate, current_user: dict = Depends(get_current_user)):
