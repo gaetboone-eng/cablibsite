@@ -264,12 +264,28 @@ export default function ListingDetail({ user, onLogout }) {
                     <Heart className={`mr-2 h-5 w-5 ${isFavorite ? 'fill-primary text-primary' : ''}`} />
                     {isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                   </Button>
+
+                  <Button
+                    onClick={() => setShowCalculator(true)}
+                    variant="outline"
+                    className="w-full rounded-full py-6 border-accent text-accent hover:bg-accent/10"
+                    data-testid="calculator-button"
+                  >
+                    <Calculator className="mr-2 h-5 w-5" />
+                    Calculer la rentabilité
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      <RentabilityCalculator
+        isOpen={showCalculator}
+        onClose={() => setShowCalculator(false)}
+        listing={listing}
+      />
     </div>
   );
 }
