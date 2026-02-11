@@ -13,6 +13,7 @@ export default function DashboardLocataire({ user, onLogout }) {
   const [favorites, setFavorites] = useState([]);
   const [listings, setListings] = useState([]);
   const [topMatches, setTopMatches] = useState([]);
+  const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -41,6 +42,12 @@ export default function DashboardLocataire({ user, onLogout }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTopMatches(matchResponse.data);
+
+      // Fetch visits
+      const visitsResponse = await axios.get(`${API}/visits/practitioner`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setVisits(visitsResponse.data);
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
     } finally {
