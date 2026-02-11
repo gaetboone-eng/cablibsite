@@ -41,6 +41,11 @@ class UserRegister(BaseModel):
     rpps_number: str
     profession: str
     user_type: str  # "locataire", "proprietaire", or "admin"
+    # Optional matching preferences
+    preferred_city: Optional[str] = None
+    max_budget: Optional[int] = None
+    min_size: Optional[int] = None
+    preferred_structure_type: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
