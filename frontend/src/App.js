@@ -11,6 +11,8 @@ import ProfilePage from './pages/ProfilePage';
 import CreateListing from './pages/CreateListing';
 import AnalyticsPage from './pages/AnalyticsPage';
 import AlertsPage from './pages/AlertsPage';
+import MessagesPage from './pages/MessagesPage';
+import ApplicationsPage from './pages/ApplicationsPage';
 import { Toaster } from './components/ui/sonner';
 
 function App() {
