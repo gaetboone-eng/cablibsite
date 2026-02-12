@@ -1525,6 +1525,76 @@ async def get_user_public_info(user_id: str):
         "user_type": user["user_type"]
     }
 
+# ==================== ADMIN USER VERIFICATION ROUTES ====================
+
+@api_router.get("/admin/pending-verifications")
+async def get_pending_verifications(current_user: dict = Depends(get_current_user)):
+    """Get all users pending verification (admin only)"""
+    if current_user.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    pending_users = await db.users.find(
+        {"verification_status": "pending"},
+        {"_id": 0, "password": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return pending_users
+
+@api_router.put("/admin/verify-user/{user_id}")
+async def verify_user(user_id: str, action: str, current_user: dict = Depends(get_current_user)):
+    """Verify or reject a user (admin only). action: 'verify' or 'reject'"""
+    if current_user.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if action not in ["verify", "reject"]:
+        raise HTTPException(status_code=400, detail="Action must be 'verify' or 'reject'")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_status = "verified" if action == "verify" else "rejected"
+    is_verified = action == "verify"
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "verification_status": new_status,
+            "is_verified": is_verified,
+            "verified_by": current_user["id"],
+            "verified_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    return updated_user
+
+@api_router.get("/admin/all-users")
+async def get_all_users(current_user: dict = Depends(get_current_user)):
+    """Get all users (admin only)"""
+    if current_user.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    users = await db.users.find({}, {"_id": 0, "password": 0}).sort("created_at", -1).to_list(500)
+    
+    # Calculate stats
+    stats = {
+        "total": len(users),
+        "verified": len([u for u in users if u.get("is_verified", False)]),
+        "pending": len([u for u in users if u.get("verification_status") == "pending"]),
+        "rejected": len([u for u in users if u.get("verification_status") == "rejected"]),
+        "locataires": len([u for u in users if u.get("user_type") == "locataire"]),
+        "proprietaires": len([u for u in users if u.get("user_type") == "proprietaire"])
+    }
+    
+    return {"stats": stats, "users": users}
+
+# Route to get equipment options
+@api_router.get("/equipment-options")
+async def get_equipment_options():
+    """Get available equipment options for listings"""
+    return {"equipments": EQUIPMENT_OPTIONS}
+
 app.include_router(api_router)
 
 app.add_middleware(
