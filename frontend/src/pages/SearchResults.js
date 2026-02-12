@@ -46,6 +46,7 @@ export default function SearchResults({ user, onLogout }) {
     try {
       const params = {};
       if (filters.city) params.city = filters.city;
+      if (filters.radius) params.radius = parseInt(filters.radius);
       if (filters.structure_type) params.structure_type = filters.structure_type;
       if (filters.min_size) params.min_size = filters.min_size;
       if (filters.max_rent) params.max_rent = filters.max_rent;
