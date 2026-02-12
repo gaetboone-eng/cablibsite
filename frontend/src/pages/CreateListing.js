@@ -219,37 +219,14 @@ export default function CreateListing({ user, onLogout }) {
               />
             </div>
 
-            {/* Photos */}
+            {/* Photos Upload */}
             <div>
-              <Label>Photos (URLs)</Label>
-              <div className="flex gap-2 mt-2">
-                <Input
-                  value={photoInput}
-                  onChange={(e) => setPhotoInput(e.target.value)}
-                  placeholder="https://..."
-                  className="rounded-xl"
-                  data-testid="photo-url-input"
-                />
-                <Button type="button" onClick={addPhoto} className="rounded-xl" data-testid="add-photo-button">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.photos.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.photos.map((photo, idx) => (
-                    <div key={idx} className="relative group">
-                      <img src={photo} alt="" className="h-20 w-32 object-cover rounded-lg" />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(idx)}
-                        className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <Label className="mb-3 block">Photos du local</Label>
+              <PhotoUploader 
+                photos={formData.photos}
+                onPhotosChange={handlePhotosChange}
+                maxPhotos={5}
+              />
             </div>
 
             {/* Professionals Present */}
