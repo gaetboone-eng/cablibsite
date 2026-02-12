@@ -889,6 +889,327 @@ async def get_searches_by_city(city: str, current_user: dict = Depends(get_curre
     logs = await db.search_logs.find({"city": {"$regex": city, "$options": "i"}}, {"_id": 0}).sort("timestamp", -1).to_list(100)
     return {"city": city, "count": len(logs), "searches": [SearchLog(**log) for log in logs]}
 
+# ==================== DOCUMENT UPLOAD ROUTES ====================
+
+@api_router.post("/documents/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a document (CV, diplôme, attestation, etc.)"""
+    # Validate file type
+    allowed_types = ["application/pdf", "image/jpeg", "image/png", "image/jpg"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Type de fichier non autorisé. PDF, JPEG, PNG uniquement.")
+    
+    # Validate file size (max 10MB)
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10MB)")
+    
+    # Create user directory
+    user_dir = UPLOAD_DIR / current_user["id"]
+    user_dir.mkdir(exist_ok=True)
+    
+    # Generate unique filename
+    doc_id = str(uuid.uuid4())
+    extension = file.filename.split(".")[-1] if "." in file.filename else "pdf"
+    new_filename = f"{doc_id}.{extension}"
+    file_path = user_dir / new_filename
+    
+    # Save file
+    async with aiofiles.open(file_path, "wb") as f:
+        await f.write(content)
+    
+    # Save document metadata
+    doc = {
+        "id": doc_id,
+        "user_id": current_user["id"],
+        "filename": new_filename,
+        "original_filename": file.filename,
+        "file_type": file.content_type,
+        "file_size": len(content),
+        "file_url": f"/api/documents/{doc_id}/download",
+        "uploaded_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.documents.insert_one(doc)
+    
+    return Document(**doc)
+
+@api_router.get("/documents", response_model=List[Document])
+async def get_user_documents(current_user: dict = Depends(get_current_user)):
+    """Get all documents uploaded by the current user"""
+    docs = await db.documents.find({"user_id": current_user["id"]}, {"_id": 0}).sort("uploaded_at", -1).to_list(50)
+    return [Document(**doc) for doc in docs]
+
+@api_router.get("/documents/{doc_id}/download")
+async def download_document(doc_id: str):
+    """Download a document"""
+    doc = await db.documents.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document non trouvé")
+    
+    file_path = UPLOAD_DIR / doc["user_id"] / doc["filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    
+    return FileResponse(
+        path=file_path,
+        filename=doc["original_filename"],
+        media_type=doc["file_type"]
+    )
+
+@api_router.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a document"""
+    doc = await db.documents.find_one({"id": doc_id, "user_id": current_user["id"]}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document non trouvé")
+    
+    # Delete file
+    file_path = UPLOAD_DIR / current_user["id"] / doc["filename"]
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete from DB
+    await db.documents.delete_one({"id": doc_id})
+    return {"message": "Document supprimé"}
+
+# ==================== APPLICATION (CANDIDATURE) ROUTES ====================
+
+@api_router.post("/applications")
+async def create_application(
+    app_data: ApplicationCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new application for a listing"""
+    if current_user.get("user_type") != "locataire":
+        raise HTTPException(status_code=403, detail="Seuls les locataires peuvent postuler")
+    
+    # Check listing exists
+    listing = await db.listings.find_one({"id": app_data.listing_id}, {"_id": 0})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Annonce non trouvée")
+    
+    # Check if already applied
+    existing = await db.applications.find_one({
+        "user_id": current_user["id"],
+        "listing_id": app_data.listing_id
+    }, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Vous avez déjà postulé à cette annonce")
+    
+    # Get user's documents
+    user_docs = await db.documents.find({"user_id": current_user["id"]}, {"_id": 0}).to_list(20)
+    
+    app_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    application = {
+        "id": app_id,
+        "user_id": current_user["id"],
+        "user_name": f"{current_user['first_name']} {current_user['last_name']}",
+        "user_email": current_user["email"],
+        "user_profession": current_user["profession"],
+        "listing_id": app_data.listing_id,
+        "listing_title": listing["title"],
+        "message": app_data.message,
+        "status": "pending",
+        "documents": [Document(**doc).model_dump() for doc in user_docs],
+        "created_at": now,
+        "updated_at": now
+    }
+    await db.applications.insert_one(application)
+    
+    return Application(**application)
+
+@api_router.get("/applications/mine")
+async def get_my_applications(current_user: dict = Depends(get_current_user)):
+    """Get applications submitted by the current user"""
+    apps = await db.applications.find({"user_id": current_user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return [Application(**app) for app in apps]
+
+@api_router.get("/applications/received")
+async def get_received_applications(current_user: dict = Depends(get_current_user)):
+    """Get applications received for owner's listings"""
+    if current_user.get("user_type") != "proprietaire":
+        raise HTTPException(status_code=403, detail="Seuls les propriétaires peuvent voir les candidatures")
+    
+    # Get owner's listings
+    listings = await db.listings.find({"owner_id": current_user["id"]}, {"_id": 0}).to_list(100)
+    listing_ids = [l["id"] for l in listings]
+    
+    # Get applications for these listings
+    apps = await db.applications.find({"listing_id": {"$in": listing_ids}}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return [Application(**app) for app in apps]
+
+@api_router.put("/applications/{app_id}/status")
+async def update_application_status(
+    app_id: str,
+    status: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update application status (accept/reject)"""
+    if status not in ["accepted", "rejected", "pending"]:
+        raise HTTPException(status_code=400, detail="Statut invalide")
+    
+    application = await db.applications.find_one({"id": app_id}, {"_id": 0})
+    if not application:
+        raise HTTPException(status_code=404, detail="Candidature non trouvée")
+    
+    # Check if user owns the listing
+    listing = await db.listings.find_one({"id": application["listing_id"]}, {"_id": 0})
+    if not listing or listing["owner_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+    
+    await db.applications.update_one(
+        {"id": app_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    updated = await db.applications.find_one({"id": app_id}, {"_id": 0})
+    return Application(**updated)
+
+# ==================== MESSAGING ROUTES ====================
+
+@api_router.post("/messages", response_model=Message)
+async def send_message(msg_data: MessageCreate, current_user: dict = Depends(get_current_user)):
+    """Send a message to another user"""
+    # Get receiver info
+    receiver = await db.users.find_one({"id": msg_data.receiver_id}, {"_id": 0})
+    if not receiver:
+        raise HTTPException(status_code=404, detail="Destinataire non trouvé")
+    
+    # Get listing info if provided
+    listing_title = None
+    if msg_data.listing_id:
+        listing = await db.listings.find_one({"id": msg_data.listing_id}, {"_id": 0})
+        if listing:
+            listing_title = listing["title"]
+    
+    msg_id = str(uuid.uuid4())
+    message = {
+        "id": msg_id,
+        "sender_id": current_user["id"],
+        "sender_name": f"{current_user['first_name']} {current_user['last_name']}",
+        "sender_email": current_user["email"],
+        "receiver_id": msg_data.receiver_id,
+        "receiver_name": f"{receiver['first_name']} {receiver['last_name']}",
+        "receiver_email": receiver["email"],
+        "listing_id": msg_data.listing_id,
+        "listing_title": listing_title,
+        "content": msg_data.content,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.messages.insert_one(message)
+    
+    return Message(**message)
+
+@api_router.get("/messages/conversations")
+async def get_conversations(current_user: dict = Depends(get_current_user)):
+    """Get all conversations for the current user"""
+    user_id = current_user["id"]
+    
+    # Get all messages involving this user
+    messages = await db.messages.find({
+        "$or": [{"sender_id": user_id}, {"receiver_id": user_id}]
+    }, {"_id": 0}).sort("created_at", -1).to_list(500)
+    
+    # Group by conversation (other user + listing)
+    conversations = {}
+    for msg in messages:
+        other_id = msg["receiver_id"] if msg["sender_id"] == user_id else msg["sender_id"]
+        other_name = msg["receiver_name"] if msg["sender_id"] == user_id else msg["sender_name"]
+        other_email = msg["receiver_email"] if msg["sender_id"] == user_id else msg["sender_email"]
+        listing_id = msg.get("listing_id")
+        
+        conv_key = f"{other_id}_{listing_id or 'general'}"
+        
+        if conv_key not in conversations:
+            conversations[conv_key] = {
+                "other_user_id": other_id,
+                "other_user_name": other_name,
+                "other_user_email": other_email,
+                "listing_id": listing_id,
+                "listing_title": msg.get("listing_title"),
+                "last_message": msg["content"],
+                "last_message_date": msg["created_at"],
+                "unread_count": 0
+            }
+        
+        # Count unread messages
+        if msg["receiver_id"] == user_id and not msg["read"]:
+            conversations[conv_key]["unread_count"] += 1
+    
+    return [Conversation(**conv) for conv in conversations.values()]
+
+@api_router.get("/messages/conversation/{other_user_id}")
+async def get_conversation_messages(
+    other_user_id: str,
+    listing_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get messages in a specific conversation"""
+    user_id = current_user["id"]
+    
+    query = {
+        "$or": [
+            {"sender_id": user_id, "receiver_id": other_user_id},
+            {"sender_id": other_user_id, "receiver_id": user_id}
+        ]
+    }
+    
+    if listing_id:
+        query["listing_id"] = listing_id
+    
+    messages = await db.messages.find(query, {"_id": 0}).sort("created_at", 1).to_list(100)
+    
+    # Mark messages as read
+    await db.messages.update_many(
+        {"receiver_id": user_id, "sender_id": other_user_id, "read": False},
+        {"$set": {"read": True}}
+    )
+    
+    return [Message(**msg) for msg in messages]
+
+@api_router.get("/messages/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    """Get total unread message count"""
+    count = await db.messages.count_documents({
+        "receiver_id": current_user["id"],
+        "read": False
+    })
+    return {"unread_count": count}
+
+@api_router.put("/messages/{msg_id}/read")
+async def mark_message_read(msg_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark a message as read"""
+    result = await db.messages.update_one(
+        {"id": msg_id, "receiver_id": current_user["id"]},
+        {"$set": {"read": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Message non trouvé")
+    return {"message": "Message marqué comme lu"}
+
+# ==================== OWNER INFO ROUTE ====================
+
+@api_router.get("/users/{user_id}/public")
+async def get_user_public_info(user_id: str):
+    """Get public info about a user (for messaging)"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    return {
+        "id": user["id"],
+        "first_name": user["first_name"],
+        "last_name": user["last_name"],
+        "profession": user.get("profession", ""),
+        "user_type": user["user_type"]
+    }
+
 app.include_router(api_router)
 
 app.add_middleware(
