@@ -10,7 +10,8 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
   return (
     <Link 
       to={`/listing/${listing.id}`}
-      className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-black/5 transition-all duration-500 overflow-hidden hover-lift"
+      className="group rounded-3xl border shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden hover-lift"
+      style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5' }}
       data-testid="listing-card"
     >
       {/* Image Container */}
@@ -25,40 +26,40 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
         
         {/* Badges */}
         {listing.is_featured && (
-          <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg" data-testid="featured-badge">
+          <div className="absolute top-4 right-4 px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg" style={{ backgroundColor: '#1A1F3D', color: '#F5F0E6' }} data-testid="featured-badge">
             ✨ En vedette
           </div>
         )}
-        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold text-foreground shadow-sm" data-testid="structure-type-badge">
+        <div className="absolute top-4 left-4 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm" style={{ backgroundColor: 'rgba(250, 247, 242, 0.95)', color: '#1A1F3D' }} data-testid="structure-type-badge">
           {listing.structure_type}
         </div>
         
         {/* Match Score */}
         {matchScore !== undefined && matchScore > 0 && (
-          <div className="absolute bottom-4 right-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-xl flex items-center gap-2" data-testid="match-score-badge">
+          <div className="absolute bottom-4 right-4 px-4 py-2 rounded-full text-sm font-bold shadow-xl flex items-center gap-2" style={{ backgroundColor: '#1A1F3D', color: '#F5F0E6' }} data-testid="match-score-badge">
             <Sparkles className="h-4 w-4" />
             {matchScore}%
           </div>
         )}
 
         {/* Arrow on hover */}
-        <div className="absolute bottom-4 left-4 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-          <ArrowUpRight className="h-5 w-5 text-foreground" />
+        <div className="absolute bottom-4 left-4 w-10 h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0" style={{ backgroundColor: '#FAF7F2' }}>
+          <ArrowUpRight className="h-5 w-5" style={{ color: '#1A1F3D' }} />
         </div>
       </div>
 
       {/* Content */}
       <div className="p-6">
         {/* Title & Location */}
-        <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-1" data-testid="listing-title">
+        <h3 className="text-xl font-semibold mb-2 group-hover:opacity-70 transition-colors duration-300 line-clamp-1" style={{ color: '#1A1F3D' }} data-testid="listing-title">
           {listing.title}
         </h3>
         
-        <div className="flex items-center gap-2 text-muted-foreground mb-4">
-          <MapPin className="h-4 w-4 text-blue-500" />
-          <span className="text-sm font-medium" data-testid="listing-city">{listing.city}</span>
+        <div className="flex items-center gap-2 mb-4">
+          <MapPin className="h-4 w-4" style={{ color: '#1A1F3D' }} />
+          <span className="text-sm font-medium" style={{ color: '#5A6478' }} data-testid="listing-city">{listing.city}</span>
           {listing.distance_km && (
-            <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(26, 31, 61, 0.1)', color: '#1A1F3D' }}>
               {listing.distance_km} km
             </span>
           )}
@@ -66,12 +67,12 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
 
         {/* Match Reasons */}
         {matchReasons && matchReasons.length > 0 && (
-          <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100/50">
-            <p className="text-xs font-semibold text-blue-600 mb-2">Pourquoi ce match ?</p>
-            <ul className="text-xs text-muted-foreground space-y-1">
+          <div className="mb-4 p-3 rounded-xl border" style={{ backgroundColor: 'rgba(26, 31, 61, 0.03)', borderColor: 'rgba(26, 31, 61, 0.1)' }}>
+            <p className="text-xs font-semibold mb-2" style={{ color: '#1A1F3D' }}>Pourquoi ce match ?</p>
+            <ul className="text-xs space-y-1" style={{ color: '#5A6478' }}>
               {matchReasons.slice(0, 2).map((reason, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
+                  <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#1A1F3D' }}></span>
                   {reason}
                 </li>
               ))}
@@ -80,15 +81,15 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
         )}
 
         {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full">
-            <Home className="h-4 w-4 text-gray-500" />
-            <span className="font-medium" data-testid="listing-size">{listing.size} m²</span>
+        <div className="flex items-center gap-4 text-sm mb-4">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(26, 31, 61, 0.05)' }}>
+            <Home className="h-4 w-4" style={{ color: '#5A6478' }} />
+            <span className="font-medium" style={{ color: '#1A1F3D' }} data-testid="listing-size">{listing.size} m²</span>
           </div>
           {listing.professionals_present && listing.professionals_present.length > 0 && (
-            <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="font-medium" data-testid="professionals-count">{listing.professionals_present.length}</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(26, 31, 61, 0.05)' }}>
+              <Users className="h-4 w-4" style={{ color: '#5A6478' }} />
+              <span className="font-medium" style={{ color: '#1A1F3D' }} data-testid="professionals-count">{listing.professionals_present.length}</span>
             </div>
           )}
         </div>
@@ -97,12 +98,12 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
         {listing.profiles_searched && listing.profiles_searched.length > 0 && (
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-purple-500" />
-              <span className="text-xs font-semibold text-muted-foreground">Recherchés</span>
+              <TrendingUp className="h-4 w-4" style={{ color: '#1A1F3D' }} />
+              <span className="text-xs font-semibold" style={{ color: '#5A6478' }}>Recherchés</span>
             </div>
             <div className="flex flex-wrap gap-2" data-testid="profiles-searched-list">
               {listing.profiles_searched.slice(0, 3).map((profile, idx) => (
-                <span key={idx} className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
+                <span key={idx} className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(26, 31, 61, 0.08)', color: '#1A1F3D' }}>
                   {profile}
                 </span>
               ))}
@@ -111,12 +112,12 @@ export const ListingCard = ({ listing, matchScore, matchReasons }) => {
         )}
 
         {/* Price */}
-        <div className="flex items-baseline justify-between pt-4 border-t border-gray-100">
+        <div className="flex items-baseline justify-between pt-4 border-t" style={{ borderColor: '#E8E0D5' }}>
           <div>
-            <span className="text-3xl font-bold text-foreground" data-testid="listing-rent">{listing.monthly_rent}€</span>
-            <span className="text-sm text-muted-foreground font-medium">/mois</span>
+            <span className="text-3xl font-bold" style={{ color: '#1A1F3D' }} data-testid="listing-rent">{listing.monthly_rent}€</span>
+            <span className="text-sm font-medium" style={{ color: '#5A6478' }}>/mois</span>
           </div>
-          <span className="text-xs text-muted-foreground">Charges non comprises</span>
+          <span className="text-xs" style={{ color: '#5A6478' }}>Charges non comprises</span>
         </div>
       </div>
     </Link>
