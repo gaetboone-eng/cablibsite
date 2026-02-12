@@ -105,15 +105,6 @@ export default function ListingDetail({ user, onLogout }) {
     }
   };
 
-  const handleContact = () => {
-    if (!user) {
-      toast.error('Veuillez vous connecter pour contacter le propriétaire');
-      navigate('/auth');
-      return;
-    }
-    setShowMessageModal(true);
-  };
-
   const handleSendMessage = async () => {
     if (!messageContent.trim()) {
       toast.error('Veuillez écrire un message');
