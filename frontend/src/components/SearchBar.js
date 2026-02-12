@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Navigation } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
@@ -17,47 +17,53 @@ export const SearchBar = ({ initialValue = '', initialRadius = '', large = true 
       if (radius) params.append('radius', radius);
       navigate(`/search?${params.toString()}`);
     } else {
-      // If no city, show all listings
       navigate('/search');
     }
   };
 
   return (
     <form onSubmit={handleSearch} className="w-full" data-testid="search-form">
-      <div className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.04)] ${large ? 'p-3' : 'p-2'} border-2 border-transparent focus-within:border-primary/20 focus-within:ring-4 focus-within:ring-primary/5 transition-all`}>
-        <div className="flex items-center gap-3 flex-1">
-          <MapPin className={`${large ? 'ml-3 h-6 w-6' : 'ml-2 h-5 w-5'} text-muted-foreground flex-shrink-0`} />
+      <div className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 bg-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] ${large ? 'p-2 md:p-3' : 'p-2'} border border-gray-100 hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-all duration-300`}>
+        {/* City Input */}
+        <div className="flex items-center gap-3 flex-1 px-4">
+          <MapPin className={`${large ? 'h-5 w-5' : 'h-4 w-4'} text-blue-500 flex-shrink-0`} />
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            placeholder="Ville (ex: Paris, Lyon...)" 
-            className={`flex-1 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium placeholder:text-muted-foreground/50`}
+            placeholder="Où cherchez-vous ?" 
+            className={`flex-1 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium placeholder:text-muted-foreground/60`}
             data-testid="search-input"
           />
         </div>
         
-        <div className="flex items-center gap-2 md:border-l md:pl-4">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Périmètre:</span>
-          <Input
+        {/* Divider */}
+        <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+        
+        {/* Radius Input */}
+        <div className="flex items-center gap-3 px-4">
+          <Navigation className={`${large ? 'h-5 w-5' : 'h-4 w-4'} text-purple-500 flex-shrink-0`} />
+          <input
             type="number"
             value={radius}
             onChange={(e) => setRadius(e.target.value)}
-            placeholder="km"
-            className="w-20 rounded-xl"
+            placeholder="Rayon"
+            className={`w-16 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium placeholder:text-muted-foreground/60`}
             min="0"
-            max="100"
+            max="500"
             data-testid="radius-input"
           />
+          <span className="text-muted-foreground">km</span>
         </div>
 
+        {/* Search Button */}
         <Button 
           type="submit"
-          className={`bg-primary hover:bg-primary/90 text-white rounded-full ${large ? 'px-8 py-6' : 'px-6 py-5'} shadow-lg shadow-primary/20 transition-all duration-300 whitespace-nowrap`}
+          className={`btn-apple text-white rounded-full ${large ? 'px-8 py-6' : 'px-6 py-5'} transition-all duration-300 whitespace-nowrap`}
           data-testid="search-submit-button"
         >
-          <Search className="h-5 w-5 mr-2" />
-          Rechercher
+          <Search className="h-5 w-5 md:mr-2" />
+          <span className="hidden md:inline">Rechercher</span>
         </Button>
       </div>
     </form>
