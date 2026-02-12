@@ -173,6 +173,58 @@ class Document(BaseModel):
     file_url: str
     uploaded_at: str
 
+# Application (candidature) model
+class ApplicationCreate(BaseModel):
+    listing_id: str
+    message: Optional[str] = None
+
+class Application(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    user_id: str
+    user_name: str
+    user_email: str
+    user_profession: str
+    listing_id: str
+    listing_title: str
+    message: Optional[str]
+    status: str  # "pending", "accepted", "rejected"
+    documents: List[Document]
+    created_at: str
+    updated_at: str
+
+# Message models for real-time messaging
+class MessageCreate(BaseModel):
+    receiver_id: str
+    listing_id: Optional[str] = None
+    content: str
+
+class Message(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    sender_id: str
+    sender_name: str
+    sender_email: str
+    receiver_id: str
+    receiver_name: str
+    receiver_email: str
+    listing_id: Optional[str]
+    listing_title: Optional[str]
+    content: str
+    read: bool
+    created_at: str
+
+class Conversation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    other_user_id: str
+    other_user_name: str
+    other_user_email: str
+    listing_id: Optional[str]
+    listing_title: Optional[str]
+    last_message: str
+    last_message_date: str
+    unread_count: int
+
 class MatchResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
     listing: Listing
