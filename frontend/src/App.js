@@ -72,6 +72,10 @@ function App() {
             element={user && user.user_type === 'admin' ? <AnalyticsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
           <Route 
+            path="/admin/users" 
+            element={user && user.user_type === 'admin' ? <AdminUsersPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
+          />
+          <Route 
             path="/owner-stats" 
             element={user && user.user_type === 'proprietaire' ? <OwnerStatsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
