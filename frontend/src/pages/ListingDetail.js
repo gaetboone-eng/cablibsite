@@ -329,6 +329,12 @@ export default function ListingDetail({ user, onLogout }) {
         onClose={() => setShowVisitModal(false)}
         listing={listing}
       />
+      
+      <ApplicationModal
+        isOpen={showApplicationModal}
+        onClose={() => setShowApplicationModal(false)}
+        listing={listing}
+      />
     </div>
   );
 }
