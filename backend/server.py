@@ -818,6 +818,73 @@ async def get_top_matches(limit: int = 3, current_user: dict = Depends(get_curre
     
     return [MatchResult(**match) for match in matches[:limit]]
 
+# ==================== LISTING PHOTO UPLOAD ====================
+
+# Create listing photos directory
+LISTING_PHOTOS_DIR = ROOT_DIR / "listing_photos"
+LISTING_PHOTOS_DIR.mkdir(exist_ok=True)
+
+@api_router.post("/listings/upload-photo")
+async def upload_listing_photo(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a photo for a listing"""
+    if current_user.get("user_type") != "proprietaire":
+        raise HTTPException(status_code=403, detail="Only owners can upload listing photos")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Type de fichier non autorisé. JPEG, PNG, WebP uniquement.")
+    
+    # Validate file size (max 5MB)
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 5MB)")
+    
+    # Generate unique filename
+    photo_id = str(uuid.uuid4())
+    extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    new_filename = f"{photo_id}.{extension}"
+    file_path = LISTING_PHOTOS_DIR / new_filename
+    
+    # Save file
+    async with aiofiles.open(file_path, "wb") as f:
+        await f.write(content)
+    
+    # Return the URL
+    photo_url = f"/api/listing-photos/{new_filename}"
+    
+    return {
+        "id": photo_id,
+        "filename": new_filename,
+        "url": photo_url,
+        "size": len(content)
+    }
+
+@api_router.get("/listing-photos/{filename}")
+async def get_listing_photo(filename: str):
+    """Serve a listing photo"""
+    file_path = LISTING_PHOTOS_DIR / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Photo non trouvée")
+    
+    # Determine content type
+    extension = filename.split(".")[-1].lower()
+    content_types = {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "webp": "image/webp"
+    }
+    content_type = content_types.get(extension, "image/jpeg")
+    
+    return FileResponse(
+        path=file_path,
+        media_type=content_type
+    )
+
 # Alert routes
 @api_router.post("/alerts", response_model=Alert)
 async def create_alert(alert_data: AlertCreate, current_user: dict = Depends(get_current_user)):
