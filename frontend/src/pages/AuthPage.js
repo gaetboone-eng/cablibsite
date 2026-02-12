@@ -115,7 +115,10 @@ export default function AuthPage({ onLogin }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="rpps_number" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Numéro RPPS</Label>
+                  <Label htmlFor="rpps_number" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>
+                    Numéro RPPS 
+                    <span className="text-xs font-normal ml-1" style={{ color: '#5A6478' }}>(optionnel)</span>
+                  </Label>
                   <Input
                     id="rpps_number"
                     name="rpps_number"
@@ -123,12 +126,16 @@ export default function AuthPage({ onLogin }) {
                     onChange={handleChange}
                     placeholder="11 chiffres"
                     maxLength="11"
-                    required
                     className="rounded-xl mt-2"
                     style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                     data-testid="rpps-input"
                   />
-                  <p className="text-xs mt-1" style={{ color: '#5A6478' }}>Format: 11 chiffres</p>
+                  <p className="text-xs mt-1" style={{ color: '#5A6478' }}>
+                    {formData.rpps_number 
+                      ? "✓ Votre profil sera automatiquement vérifié"
+                      : "Sans RPPS, votre profil devra être validé par un administrateur"
+                    }
+                  </p>
                 </div>
 
                 <div>
@@ -143,6 +150,7 @@ export default function AuthPage({ onLogin }) {
                     </SelectTrigger>
                     <SelectContent className="rounded-xl" style={{ backgroundColor: '#FAF7F2' }}>
                       <SelectItem value="Médecin généraliste">Médecin généraliste</SelectItem>
+                      <SelectItem value="Médecin spécialiste">Médecin spécialiste</SelectItem>
                       <SelectItem value="Infirmier(ère)">Infirmier(ère)</SelectItem>
                       <SelectItem value="Kinésithérapeute">Kinésithérapeute</SelectItem>
                       <SelectItem value="Ostéopathe">Ostéopathe</SelectItem>
@@ -150,9 +158,33 @@ export default function AuthPage({ onLogin }) {
                       <SelectItem value="Dentiste">Dentiste</SelectItem>
                       <SelectItem value="Sage-femme">Sage-femme</SelectItem>
                       <SelectItem value="Pharmacien">Pharmacien</SelectItem>
+                      <SelectItem value="Diététicien(ne)">Diététicien(ne)</SelectItem>
+                      <SelectItem value="Orthophoniste">Orthophoniste</SelectItem>
+                      <SelectItem value="Pédicure-podologue">Pédicure-podologue</SelectItem>
+                      <SelectItem value="Ergothérapeute">Ergothérapeute</SelectItem>
+                      <SelectItem value="Psychomotricien(ne)">Psychomotricien(ne)</SelectItem>
+                      <SelectItem value="Autre">Autre (profession non conventionnelle)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {formData.profession === 'Autre' && (
+                  <div>
+                    <Label htmlFor="custom_profession" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>
+                      Précisez votre profession
+                    </Label>
+                    <Input
+                      id="custom_profession"
+                      name="custom_profession"
+                      value={formData.custom_profession || ''}
+                      onChange={handleChange}
+                      placeholder="Ex: Naturopathe, Sophrologue..."
+                      required
+                      className="rounded-xl mt-2"
+                      style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
+                    />
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="user_type" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Type de compte</Label>
