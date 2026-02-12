@@ -615,6 +615,161 @@ async def remove_favorite(listing_id: str, current_user: dict = Depends(get_curr
         raise HTTPException(status_code=404, detail="Favorite not found")
     return {"message": "Favorite removed"}
 
+# ==================== OWNER STATISTICS ROUTES ====================
+
+@api_router.get("/owner/stats")
+async def get_owner_statistics(current_user: dict = Depends(get_current_user)):
+    """Get overall statistics for a property owner"""
+    if current_user.get("user_type") != "proprietaire":
+        raise HTTPException(status_code=403, detail="Only owners can access statistics")
+    
+    owner_id = current_user["id"]
+    
+    # Get owner's listings
+    listings = await db.listings.find({"owner_id": owner_id}, {"_id": 0}).to_list(50)
+    listing_ids = [l["id"] for l in listings]
+    
+    # Calculate stats
+    total_views = await db.listing_views.count_documents({"listing_id": {"$in": listing_ids}})
+    
+    # Messages received (as owner)
+    total_contacts = await db.messages.count_documents({"receiver_id": owner_id})
+    
+    # Favorites on owner's listings
+    total_favorites = await db.favorites.count_documents({"listing_id": {"$in": listing_ids}})
+    
+    # Applications received
+    total_applications = await db.applications.count_documents({"listing_id": {"$in": listing_ids}})
+    
+    # Visits scheduled
+    total_visits = await db.visits.count_documents({"listing_id": {"$in": listing_ids}})
+    
+    # Last 30 days stats
+    thirty_days_ago = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    views_30d = await db.listing_views.count_documents({
+        "listing_id": {"$in": listing_ids},
+        "timestamp": {"$gte": thirty_days_ago}
+    })
+    contacts_30d = await db.messages.count_documents({
+        "receiver_id": owner_id,
+        "created_at": {"$gte": thirty_days_ago}
+    })
+    
+    # Per listing stats
+    listings_stats = []
+    for listing in listings:
+        lid = listing["id"]
+        listing_views = await db.listing_views.count_documents({"listing_id": lid})
+        listing_favorites = await db.favorites.count_documents({"listing_id": lid})
+        listing_contacts = await db.messages.count_documents({
+            "receiver_id": owner_id,
+            "listing_id": lid
+        })
+        listing_applications = await db.applications.count_documents({"listing_id": lid})
+        listing_visits = await db.visits.count_documents({"listing_id": lid})
+        
+        # Views in last 7 days
+        seven_days_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        views_7d = await db.listing_views.count_documents({
+            "listing_id": lid,
+            "timestamp": {"$gte": seven_days_ago}
+        })
+        
+        listings_stats.append({
+            "listing_id": lid,
+            "title": listing.get("title", ""),
+            "city": listing.get("city", ""),
+            "monthly_rent": listing.get("monthly_rent", 0),
+            "created_at": listing.get("created_at", ""),
+            "stats": {
+                "total_views": listing_views,
+                "views_7d": views_7d,
+                "favorites": listing_favorites,
+                "contacts": listing_contacts,
+                "applications": listing_applications,
+                "visits_scheduled": listing_visits
+            }
+        })
+    
+    return {
+        "summary": {
+            "total_listings": len(listings),
+            "total_views": total_views,
+            "total_contacts": total_contacts,
+            "total_favorites": total_favorites,
+            "total_applications": total_applications,
+            "total_visits": total_visits,
+            "views_30d": views_30d,
+            "contacts_30d": contacts_30d,
+            "conversion_rate": round((total_contacts / total_views * 100), 1) if total_views > 0 else 0
+        },
+        "listings": listings_stats
+    }
+
+@api_router.get("/owner/stats/{listing_id}")
+async def get_listing_statistics(listing_id: str, current_user: dict = Depends(get_current_user)):
+    """Get detailed statistics for a specific listing"""
+    if current_user.get("user_type") != "proprietaire":
+        raise HTTPException(status_code=403, detail="Only owners can access statistics")
+    
+    listing = await db.listings.find_one({"id": listing_id}, {"_id": 0})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    if listing["owner_id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not your listing")
+    
+    owner_id = current_user["id"]
+    
+    # Get all views for this listing
+    views = await db.listing_views.find({"listing_id": listing_id}, {"_id": 0}).sort("timestamp", -1).to_list(1000)
+    
+    # Calculate daily views for last 30 days
+    daily_views = {}
+    for i in range(30):
+        day = (datetime.now(timezone.utc) - timedelta(days=i)).strftime("%Y-%m-%d")
+        daily_views[day] = 0
+    
+    for view in views:
+        day = view["timestamp"][:10]
+        if day in daily_views:
+            daily_views[day] += 1
+    
+    # Sort by date
+    views_chart = [{"date": k, "views": v} for k, v in sorted(daily_views.items())]
+    
+    # Other stats
+    total_views = len(views)
+    favorites = await db.favorites.count_documents({"listing_id": listing_id})
+    contacts = await db.messages.count_documents({"receiver_id": owner_id, "listing_id": listing_id})
+    applications = await db.applications.count_documents({"listing_id": listing_id})
+    visits = await db.visits.count_documents({"listing_id": listing_id})
+    
+    # Calculate averages in the area (simple estimation)
+    city_listings = await db.listings.find({"city": listing["city"]}, {"_id": 0}).to_list(50)
+    avg_rent = sum([l.get("monthly_rent", 0) for l in city_listings]) / len(city_listings) if city_listings else 0
+    
+    return {
+        "listing": {
+            "id": listing_id,
+            "title": listing.get("title", ""),
+            "city": listing.get("city", ""),
+            "monthly_rent": listing.get("monthly_rent", 0)
+        },
+        "stats": {
+            "total_views": total_views,
+            "favorites": favorites,
+            "contacts": contacts,
+            "applications": applications,
+            "visits_scheduled": visits,
+            "conversion_rate": round((contacts / total_views * 100), 1) if total_views > 0 else 0
+        },
+        "views_chart": views_chart,
+        "insights": {
+            "avg_rent_in_city": round(avg_rent),
+            "price_vs_average": "above" if listing.get("monthly_rent", 0) > avg_rent else "below"
+        }
+    }
+
 # Matching routes
 @api_router.get("/matches", response_model=List[MatchResult])
 async def get_matches(current_user: dict = Depends(get_current_user)):
