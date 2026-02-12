@@ -23,43 +23,48 @@ export const SearchBar = ({ initialValue = '', initialRadius = '', large = true 
 
   return (
     <form onSubmit={handleSearch} className="w-full" data-testid="search-form">
-      <div className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 bg-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] ${large ? 'p-2 md:p-3' : 'p-2'} border border-gray-100 hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] focus-within:shadow-[0_12px_40px_rgba(0,0,0,0.12)] transition-all duration-300`}>
+      <div 
+        className={`flex flex-col md:flex-row items-stretch md:items-center gap-3 rounded-full shadow-[0_8px_30px_rgba(26,31,61,0.08)] ${large ? 'p-2 md:p-3' : 'p-2'} border hover:shadow-[0_12px_40px_rgba(26,31,61,0.12)] focus-within:shadow-[0_12px_40px_rgba(26,31,61,0.12)] transition-all duration-300`}
+        style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5' }}
+      >
         {/* City Input */}
         <div className="flex items-center gap-3 flex-1 px-4">
-          <MapPin className={`${large ? 'h-5 w-5' : 'h-4 w-4'} text-blue-500 flex-shrink-0`} />
+          <MapPin className={`${large ? 'h-5 w-5' : 'h-4 w-4'} flex-shrink-0`} style={{ color: '#1A1F3D' }} />
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Où cherchez-vous ?" 
-            className={`flex-1 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium placeholder:text-muted-foreground/60`}
+            className={`flex-1 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium`}
+            style={{ color: '#1A1F3D' }}
             data-testid="search-input"
           />
         </div>
         
         {/* Divider */}
-        <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+        <div className="hidden md:block w-px h-8" style={{ backgroundColor: '#E8E0D5' }}></div>
         
         {/* Radius Input */}
         <div className="flex items-center gap-3 px-4">
-          <Navigation className={`${large ? 'h-5 w-5' : 'h-4 w-4'} text-purple-500 flex-shrink-0`} />
+          <Navigation className={`${large ? 'h-5 w-5' : 'h-4 w-4'} flex-shrink-0`} style={{ color: '#1A1F3D' }} />
           <input
             type="number"
             value={radius}
             onChange={(e) => setRadius(e.target.value)}
             placeholder="Rayon"
-            className={`w-16 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium placeholder:text-muted-foreground/60`}
+            className={`w-16 outline-none bg-transparent ${large ? 'text-lg' : 'text-base'} font-medium`}
+            style={{ color: '#1A1F3D' }}
             min="0"
             max="500"
             data-testid="radius-input"
           />
-          <span className="text-muted-foreground">km</span>
+          <span style={{ color: '#5A6478' }}>km</span>
         </div>
 
         {/* Search Button */}
         <Button 
           type="submit"
-          className={`btn-apple text-white rounded-full ${large ? 'px-8 py-6' : 'px-6 py-5'} transition-all duration-300 whitespace-nowrap`}
+          className={`btn-navy rounded-full ${large ? 'px-8 py-6' : 'px-6 py-5'} transition-all duration-300 whitespace-nowrap`}
           data-testid="search-submit-button"
         >
           <Search className="h-5 w-5 md:mr-2" />
