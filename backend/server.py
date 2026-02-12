@@ -533,6 +533,22 @@ async def get_listing(listing_id: str):
         raise HTTPException(status_code=404, detail="Listing not found")
     return Listing(**listing)
 
+@api_router.post("/listings/{listing_id}/view")
+async def track_listing_view(listing_id: str, user_id: Optional[str] = None):
+    """Track a view on a listing for statistics"""
+    listing = await db.listings.find_one({"id": listing_id}, {"_id": 0})
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    
+    view_doc = {
+        "id": str(uuid.uuid4()),
+        "listing_id": listing_id,
+        "user_id": user_id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.listing_views.insert_one(view_doc)
+    return {"message": "View tracked"}
+
 @api_router.put("/listings/{listing_id}", response_model=Listing)
 async def update_listing(
     listing_id: str,
