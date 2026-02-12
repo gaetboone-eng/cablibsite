@@ -245,3 +245,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Implemented 4 major features: 1) Document upload with file validation (PDF, images, max 10MB), 2) Application/candidature system for tenants to apply to listings, 3) Complete messaging system with conversations and real-time polling, 4) Geographic radius search using Haversine formula. Test accounts: proprietaire@test.fr/test123 and locataire@test.fr/test123. Backend tested via curl - radius search and messaging work correctly."
+  - agent: "testing"
+    message: "Backend API comprehensive testing completed - ALL 4 high priority features working perfectly: 1) Document Upload System: File upload/list/delete with proper validation (PDF/images, 10MB limit), 2) Application System: Full candidature workflow with create/retrieve/status updates, 3) Messaging System: Complete real-time messaging with conversations and unread tracking, 4) Radius Search: Accurate Haversine distance calculations. All 15 individual test cases passed. Authentication working for both user types. Backend service running stable on https://office-match-hub.preview.emergentagent.com/api."
