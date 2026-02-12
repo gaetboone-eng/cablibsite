@@ -111,8 +111,37 @@ export default function ListingDetail({ user, onLogout }) {
       navigate('/auth');
       return;
     }
-    // Navigate to messages with owner context
-    navigate(`/messages?to=${listing.owner_id}&listing=${listing.id}`);
+    setShowMessageModal(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageContent.trim()) {
+      toast.error('Veuillez écrire un message');
+      return;
+    }
+
+    setSendingMessage(true);
+    try {
+      const token = localStorage.getItem('cablib_token');
+      await axios.post(`${API}/messages`, {
+        receiver_id: listing.owner_id,
+        listing_id: listing.id,
+        content: messageContent
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Message envoyé !');
+      setShowMessageModal(false);
+      setMessageContent('');
+    } catch (error) {
+      toast.error('Erreur lors de l\'envoi du message');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const handleTemplateSelect = (message) => {
+    setMessageContent(message);
   };
 
   const handleApply = () => {
