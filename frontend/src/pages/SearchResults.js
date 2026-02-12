@@ -26,7 +26,11 @@ export default function SearchResults({ user, onLogout }) {
     structure_type: '',
     min_size: '',
     max_rent: '',
-    profession: ''
+    profession: '',
+    // New filters
+    has_parking: '',
+    is_pmr_accessible: '',
+    equipments: ''
   });
 
   useEffect(() => {
