@@ -14,6 +14,7 @@ import AlertsPage from './pages/AlertsPage';
 import MessagesPage from './pages/MessagesPage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import OwnerStatsPage from './pages/OwnerStatsPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import { Toaster } from './components/ui/sonner';
 
 function App() {
