@@ -41,9 +41,6 @@ export default function CreateListing({ user, onLogout }) {
   const handlePhotosChange = (newPhotos) => {
     setFormData({ ...formData, photos: newPhotos });
   };
-      photos: formData.photos.filter((_, i) => i !== index)
-    });
-  };
 
   const addProfPresent = () => {
     if (profPresentInput.trim()) {
