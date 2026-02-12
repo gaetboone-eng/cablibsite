@@ -128,15 +128,33 @@ class User(BaseModel):
     email: str
     first_name: str
     last_name: str
-    rpps_number: str
+    rpps_number: Optional[str] = None
     profession: str
     user_type: str
+    is_verified: bool = False
+    verification_status: str = "pending"  # "pending", "verified", "rejected"
     created_at: str
 
 class Token(BaseModel):
     access_token: str
     token_type: str
     user: User
+
+# Equipment options for listings
+EQUIPMENT_OPTIONS = [
+    "Salle d'attente",
+    "Table d'examen",
+    "Bureau de consultation",
+    "Salle de soins",
+    "Sanitaires patients",
+    "Point d'eau",
+    "Climatisation",
+    "Chauffage",
+    "Internet fibre",
+    "Secrétariat partagé",
+    "Salle de stérilisation",
+    "Stockage matériel"
+]
 
 class ListingCreate(BaseModel):
     title: str
@@ -150,6 +168,12 @@ class ListingCreate(BaseModel):
     professionals_present: List[str] = []
     profiles_searched: List[str] = []
     is_featured: bool = False
+    # New fields
+    equipments: List[str] = []
+    has_parking: bool = False
+    parking_spots: Optional[int] = None
+    is_pmr_accessible: bool = False
+    pmr_details: Optional[str] = None
 
 class Listing(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -167,6 +191,12 @@ class Listing(BaseModel):
     owner_id: str
     is_featured: bool
     created_at: str
+    # New fields with defaults for backward compatibility
+    equipments: List[str] = []
+    has_parking: bool = False
+    parking_spots: Optional[int] = None
+    is_pmr_accessible: bool = False
+    pmr_details: Optional[str] = None
 
 class FavoriteCreate(BaseModel):
     listing_id: str
