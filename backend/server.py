@@ -37,6 +37,72 @@ security = HTTPBearer()
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Upload directory
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+# City coordinates for radius search (major French cities)
+CITY_COORDINATES = {
+    "paris": (48.8566, 2.3522),
+    "lyon": (45.7640, 4.8357),
+    "marseille": (43.2965, 5.3698),
+    "toulouse": (43.6047, 1.4442),
+    "nice": (43.7102, 7.2620),
+    "nantes": (47.2184, -1.5536),
+    "strasbourg": (48.5734, 7.7521),
+    "montpellier": (43.6108, 3.8767),
+    "bordeaux": (44.8378, -0.5792),
+    "lille": (50.6292, 3.0573),
+    "rennes": (48.1173, -1.6778),
+    "reims": (49.2583, 4.0317),
+    "saint-etienne": (45.4397, 4.3872),
+    "toulon": (43.1242, 5.9280),
+    "grenoble": (45.1885, 5.7245),
+    "dijon": (47.3220, 5.0415),
+    "angers": (47.4784, -0.5632),
+    "nimes": (43.8367, 4.3601),
+    "clermont-ferrand": (45.7772, 3.0870),
+    "tours": (47.3941, 0.6848),
+    "amiens": (49.8941, 2.2958),
+    "limoges": (45.8336, 1.2611),
+    "metz": (49.1193, 6.1757),
+    "besancon": (47.2378, 6.0241),
+    "perpignan": (42.6887, 2.8948),
+    "orleans": (47.9029, 1.9093),
+    "caen": (49.1829, -0.3707),
+    "rouen": (49.4432, 1.0993),
+    "nancy": (48.6921, 6.1844),
+    "avignon": (43.9493, 4.8055),
+}
+
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate the great circle distance between two points on earth (in km)"""
+    R = 6371  # Earth's radius in kilometers
+    
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lon = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return R * c
+
+def get_city_coordinates(city_name: str) -> Optional[tuple]:
+    """Get coordinates for a city name"""
+    if not city_name:
+        return None
+    normalized = city_name.lower().strip().replace("-", " ").replace("saint", "st")
+    # Try exact match first
+    if normalized in CITY_COORDINATES:
+        return CITY_COORDINATES[normalized]
+    # Try partial match
+    for city, coords in CITY_COORDINATES.items():
+        if normalized in city or city in normalized:
+            return coords
+    return None
+
 # Models
 class UserRegister(BaseModel):
     email: EmailStr
