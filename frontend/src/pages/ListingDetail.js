@@ -5,8 +5,9 @@ import { Header } from '../components/Header';
 import { RentabilityCalculator } from '../components/RentabilityCalculator';
 import { ScheduleVisitModal } from '../components/ScheduleVisitModal';
 import { ApplicationModal } from '../components/ApplicationModal';
+import { MessageTemplates } from '../components/MessageTemplates';
 import { Button } from '../components/ui/button';
-import { MapPin, Home, Users, TrendingUp, Mail, Heart, ArrowLeft, Building2, Calculator, Calendar, FileText, MessageCircle } from 'lucide-react';
+import { MapPin, Home, Users, TrendingUp, Mail, Heart, ArrowLeft, Building2, Calculator, Calendar, FileText, MessageCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -23,6 +24,9 @@ export default function ListingDetail({ user, onLogout }) {
   const [showCalculator, setShowCalculator] = useState(false);
   const [showVisitModal, setShowVisitModal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageContent, setMessageContent] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     fetchListing();
@@ -30,6 +34,23 @@ export default function ListingDetail({ user, onLogout }) {
       checkFavorite();
     }
   }, [id, user]);
+
+  // Track view when listing is loaded
+  useEffect(() => {
+    if (listing) {
+      trackView();
+    }
+  }, [listing]);
+
+  const trackView = async () => {
+    try {
+      await axios.post(`${API}/listings/${id}/view`, {
+        user_id: user?.id || null
+      });
+    } catch (error) {
+      // Silent fail for view tracking
+    }
+  };
 
   const fetchListing = async () => {
     try {
