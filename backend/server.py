@@ -485,7 +485,13 @@ async def login(credentials: UserLogin):
         email=user["email"],
         first_name=user["first_name"],
         last_name=user["last_name"],
-        rpps_number=user["rpps_number"],
+        rpps_number=user.get("rpps_number"),
+        profession=user["profession"],
+        user_type=user["user_type"],
+        is_verified=user.get("is_verified", True),  # Default to True for existing users
+        verification_status=user.get("verification_status", "verified"),
+        created_at=user["created_at"]
+    )
         profession=user["profession"],
         user_type=user["user_type"],
         created_at=user["created_at"]
