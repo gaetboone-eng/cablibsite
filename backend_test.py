@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 
 # Test Configuration
-BASE_URL = "https://office-match-hub.preview.emergentagent.com/api"
+BASE_URL = "https://cablib-onboard.preview.emergentagent.com/api"
 
 # Test accounts
 TEST_ACCOUNTS = {
