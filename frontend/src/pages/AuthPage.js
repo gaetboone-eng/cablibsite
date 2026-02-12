@@ -64,56 +64,58 @@ export default function AuthPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12" data-testid="auth-page">
+    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ backgroundColor: '#F5F0E6' }} data-testid="auth-page">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-10">
-          <span className="logo-text text-5xl">CabLib</span>
-          <div className="w-16 h-1 mx-auto mt-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+          <span className="logo-text text-6xl">CabLib</span>
+          <div className="w-16 h-1 mx-auto mt-4 rounded-full" style={{ backgroundColor: '#1A1F3D' }}></div>
         </div>
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-foreground mb-2">
+          <h1 className="text-3xl font-semibold mb-2" style={{ color: '#1A1F3D' }}>
             {isLogin ? 'Bon retour' : 'Rejoignez-nous'}
           </h1>
-          <p className="text-muted-foreground">Réservé aux professionnels de santé</p>
+          <p style={{ color: '#5A6478' }}>Réservé aux professionnels de santé</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.08)] p-8 border border-gray-100">
+        <div className="rounded-3xl shadow-[0_20px_60px_rgba(26,31,61,0.08)] p-8 border" style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5' }}>
           <form onSubmit={handleSubmit} className="space-y-5" data-testid="auth-form">
             {!isLogin && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="first_name" className="text-sm font-medium">Prénom</Label>
+                    <Label htmlFor="first_name" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Prénom</Label>
                     <Input
                       id="first_name"
                       name="first_name"
                       value={formData.first_name}
                       onChange={handleChange}
                       required
-                      className="rounded-xl mt-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="rounded-xl mt-2"
+                      style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                       data-testid="first-name-input"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="last_name" className="text-sm font-medium">Nom</Label>
+                    <Label htmlFor="last_name" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Nom</Label>
                     <Input
                       id="last_name"
                       name="last_name"
                       value={formData.last_name}
                       onChange={handleChange}
                       required
-                      className="rounded-xl mt-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="rounded-xl mt-2"
+                      style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                       data-testid="last-name-input"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <Label htmlFor="rpps_number" className="text-sm font-medium">Numéro RPPS</Label>
+                  <Label htmlFor="rpps_number" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Numéro RPPS</Label>
                   <Input
                     id="rpps_number"
                     name="rpps_number"
@@ -122,23 +124,24 @@ export default function AuthPage({ onLogin }) {
                     placeholder="11 chiffres"
                     maxLength="11"
                     required
-                    className="rounded-xl mt-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="rounded-xl mt-2"
+                    style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                     data-testid="rpps-input"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Format: 11 chiffres</p>
+                  <p className="text-xs mt-1" style={{ color: '#5A6478' }}>Format: 11 chiffres</p>
                 </div>
 
                 <div>
-                  <Label htmlFor="profession" className="text-sm font-medium">Profession</Label>
+                  <Label htmlFor="profession" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Profession</Label>
                   <Select 
                     value={formData.profession} 
                     onValueChange={(value) => setFormData({ ...formData, profession: value })}
                     required
                   >
-                    <SelectTrigger id="profession" className="rounded-xl mt-2 border-gray-200" data-testid="profession-select">
+                    <SelectTrigger id="profession" className="rounded-xl mt-2" style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }} data-testid="profession-select">
                       <SelectValue placeholder="Sélectionnez votre profession" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl" style={{ backgroundColor: '#FAF7F2' }}>
                       <SelectItem value="Médecin généraliste">Médecin généraliste</SelectItem>
                       <SelectItem value="Infirmier(ère)">Infirmier(ère)</SelectItem>
                       <SelectItem value="Kinésithérapeute">Kinésithérapeute</SelectItem>
@@ -152,15 +155,15 @@ export default function AuthPage({ onLogin }) {
                 </div>
 
                 <div>
-                  <Label htmlFor="user_type" className="text-sm font-medium">Type de compte</Label>
+                  <Label htmlFor="user_type" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Type de compte</Label>
                   <Select 
                     value={formData.user_type} 
                     onValueChange={(value) => setFormData({ ...formData, user_type: value })}
                   >
-                    <SelectTrigger id="user_type" className="rounded-xl mt-2 border-gray-200" data-testid="user-type-select">
+                    <SelectTrigger id="user_type" className="rounded-xl mt-2" style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }} data-testid="user-type-select">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl">
+                    <SelectContent className="rounded-xl" style={{ backgroundColor: '#FAF7F2' }}>
                       <SelectItem value="locataire">🔍 Locataire (je cherche un local)</SelectItem>
                       <SelectItem value="proprietaire">🏠 Propriétaire (je propose un local)</SelectItem>
                     </SelectContent>
@@ -170,7 +173,7 @@ export default function AuthPage({ onLogin }) {
             )}
 
             <div>
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -178,13 +181,14 @@ export default function AuthPage({ onLogin }) {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="rounded-xl mt-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                className="rounded-xl mt-2"
+                style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                 data-testid="email-input"
               />
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
+              <Label htmlFor="password" className="text-sm font-medium" style={{ color: '#1A1F3D' }}>Mot de passe</Label>
               <Input
                 id="password"
                 name="password"
@@ -192,7 +196,8 @@ export default function AuthPage({ onLogin }) {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="rounded-xl mt-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                className="rounded-xl mt-2"
+                style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5', color: '#1A1F3D' }}
                 data-testid="password-input"
               />
             </div>
@@ -200,7 +205,7 @@ export default function AuthPage({ onLogin }) {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full btn-apple text-white rounded-full py-6 mt-2"
+              className="w-full btn-navy rounded-full py-6 mt-2"
               data-testid="auth-submit-button"
             >
               {loading ? 'Chargement...' : isLogin ? 'Se connecter' : 'Créer mon compte'}
@@ -210,7 +215,8 @@ export default function AuthPage({ onLogin }) {
           <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-blue-600 hover:text-purple-600 text-sm font-medium transition-colors"
+              className="text-sm font-medium transition-colors"
+              style={{ color: '#1A1F3D' }}
               data-testid="toggle-auth-mode"
             >
               {isLogin ? 'Pas encore de compte ? Inscrivez-vous' : 'Déjà un compte ? Connectez-vous'}
@@ -222,7 +228,8 @@ export default function AuthPage({ onLogin }) {
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+            className="text-sm transition-colors hover:opacity-70"
+            style={{ color: '#5A6478' }}
           >
             ← Retour à l'accueil
           </button>
