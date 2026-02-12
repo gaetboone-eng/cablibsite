@@ -527,7 +527,11 @@ async def get_listings(
     min_size: Optional[int] = None,
     max_rent: Optional[int] = None,
     profession: Optional[str] = None,
-    radius: Optional[int] = None  # Radius in km
+    radius: Optional[int] = None,
+    # New filters
+    has_parking: Optional[bool] = None,
+    is_pmr_accessible: Optional[bool] = None,
+    equipments: Optional[str] = None  # Comma-separated list
 ):
     query = {}
     
@@ -558,6 +562,17 @@ async def get_listings(
                             profiles = listing.get("profiles_searched", [])
                             if not any(profession.lower() in p.lower() for p in profiles):
                                 continue
+                        # New filters
+                        if has_parking is not None and listing.get("has_parking", False) != has_parking:
+                            continue
+                        if is_pmr_accessible is not None and listing.get("is_pmr_accessible", False) != is_pmr_accessible:
+                            continue
+                        if equipments:
+                            required_equips = [e.strip() for e in equipments.split(",")]
+                            listing_equips = listing.get("equipments", [])
+                            if not all(eq in listing_equips for eq in required_equips):
+                                continue
+                        
                         listing["distance_km"] = round(distance, 1)
                         filtered_listings.append(listing)
             
@@ -576,6 +591,14 @@ async def get_listings(
         query["monthly_rent"] = {"$lte": max_rent}
     if profession:
         query["profiles_searched"] = {"$regex": profession, "$options": "i"}
+    # New filters
+    if has_parking is not None:
+        query["has_parking"] = has_parking
+    if is_pmr_accessible is not None:
+        query["is_pmr_accessible"] = is_pmr_accessible
+    if equipments:
+        required_equips = [e.strip() for e in equipments.split(",")]
+        query["equipments"] = {"$all": required_equips}
     
     listings = await db.listings.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return [Listing(**listing) for listing in listings]
