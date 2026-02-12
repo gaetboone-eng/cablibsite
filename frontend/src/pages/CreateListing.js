@@ -313,6 +313,101 @@ export default function CreateListing({ user, onLogout }) {
               )}
             </div>
 
+            {/* NEW: Equipments */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Stethoscope className="h-4 w-4" style={{ color: '#1A1F3D' }} />
+                <Label className="font-medium" style={{ color: '#1A1F3D' }}>Équipements disponibles</Label>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 rounded-xl" style={{ backgroundColor: 'rgba(26, 31, 61, 0.03)' }}>
+                {equipmentOptions.map(equipment => (
+                  <div key={equipment} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`equip-${equipment}`}
+                      checked={formData.equipments.includes(equipment)}
+                      onCheckedChange={() => handleEquipmentToggle(equipment)}
+                    />
+                    <label 
+                      htmlFor={`equip-${equipment}`} 
+                      className="text-sm cursor-pointer"
+                      style={{ color: '#1A1F3D' }}
+                    >
+                      {equipment}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* NEW: Parking */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Car className="h-4 w-4" style={{ color: '#1A1F3D' }} />
+                <Label className="font-medium" style={{ color: '#1A1F3D' }}>Parking</Label>
+              </div>
+              <div className="space-y-3 p-4 rounded-xl" style={{ backgroundColor: 'rgba(26, 31, 61, 0.03)' }}>
+                <div className="flex items-center space-x-3">
+                  <Checkbox 
+                    id="has_parking"
+                    checked={formData.has_parking}
+                    onCheckedChange={(checked) => setFormData({ ...formData, has_parking: checked })}
+                  />
+                  <label htmlFor="has_parking" className="text-sm cursor-pointer" style={{ color: '#1A1F3D' }}>
+                    Parking disponible
+                  </label>
+                </div>
+                {formData.has_parking && (
+                  <div>
+                    <Label htmlFor="parking_spots" className="text-sm" style={{ color: '#5A6478' }}>Nombre de places</Label>
+                    <Input
+                      id="parking_spots"
+                      name="parking_spots"
+                      type="number"
+                      value={formData.parking_spots}
+                      onChange={handleChange}
+                      placeholder="Ex: 5"
+                      className="rounded-xl mt-1 w-32"
+                      style={{ borderColor: '#E8E0D5' }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* NEW: Accessibility PMR */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Accessibility className="h-4 w-4" style={{ color: '#1A1F3D' }} />
+                <Label className="font-medium" style={{ color: '#1A1F3D' }}>Accessibilité</Label>
+              </div>
+              <div className="space-y-3 p-4 rounded-xl" style={{ backgroundColor: 'rgba(26, 31, 61, 0.03)' }}>
+                <div className="flex items-center space-x-3">
+                  <Checkbox 
+                    id="is_pmr_accessible"
+                    checked={formData.is_pmr_accessible}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_pmr_accessible: checked })}
+                  />
+                  <label htmlFor="is_pmr_accessible" className="text-sm cursor-pointer" style={{ color: '#1A1F3D' }}>
+                    Accessible aux Personnes à Mobilité Réduite (PMR)
+                  </label>
+                </div>
+                {formData.is_pmr_accessible && (
+                  <div>
+                    <Label htmlFor="pmr_details" className="text-sm" style={{ color: '#5A6478' }}>Détails d'accessibilité</Label>
+                    <Textarea
+                      id="pmr_details"
+                      name="pmr_details"
+                      value={formData.pmr_details}
+                      onChange={handleChange}
+                      placeholder="Ex: Rampe d'accès, ascenseur, WC adaptés..."
+                      className="rounded-xl mt-1"
+                      style={{ borderColor: '#E8E0D5' }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-6">
               <Button
                 type="submit"
