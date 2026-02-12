@@ -120,6 +120,12 @@ export default function ListingDetail({ user, onLogout }) {
       return;
     }
 
+    // Check if user is verified
+    if (!user.is_verified) {
+      toast.error('Votre profil doit être vérifié pour contacter un propriétaire');
+      return;
+    }
+
     setSendingMessage(true);
     try {
       const token = localStorage.getItem('cablib_token');
@@ -154,7 +160,26 @@ export default function ListingDetail({ user, onLogout }) {
       toast.error('Seuls les locataires peuvent postuler');
       return;
     }
+    // Check if user is verified
+    if (!user.is_verified) {
+      toast.error('Votre profil doit être vérifié pour postuler. Ajoutez un numéro RPPS ou attendez la validation administrateur.');
+      return;
+    }
     setShowApplicationModal(true);
+  };
+
+  const handleContact = () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour contacter le propriétaire');
+      navigate('/auth');
+      return;
+    }
+    // Check if user is verified
+    if (!user.is_verified) {
+      toast.error('Votre profil doit être vérifié pour contacter un propriétaire');
+      return;
+    }
+    setShowMessageModal(true);
   };
 
   if (loading) {
