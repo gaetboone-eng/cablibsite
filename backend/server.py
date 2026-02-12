@@ -492,16 +492,23 @@ async def login(credentials: UserLogin):
         verification_status=user.get("verification_status", "verified"),
         created_at=user["created_at"]
     )
-        profession=user["profession"],
-        user_type=user["user_type"],
-        created_at=user["created_at"]
-    )
     
     return Token(access_token=access_token, token_type="bearer", user=user_response)
 
 @api_router.get("/auth/me", response_model=User)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    return User(**current_user)
+    return User(
+        id=current_user["id"],
+        email=current_user["email"],
+        first_name=current_user["first_name"],
+        last_name=current_user["last_name"],
+        rpps_number=current_user.get("rpps_number"),
+        profession=current_user["profession"],
+        user_type=current_user["user_type"],
+        is_verified=current_user.get("is_verified", True),
+        verification_status=current_user.get("verification_status", "verified"),
+        created_at=current_user["created_at"]
+    )
 
 # Listings routes
 @api_router.post("/listings", response_model=Listing)
