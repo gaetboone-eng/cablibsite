@@ -16,7 +16,7 @@ export default function LandingPage({ user, onLogout }) {
       <section className="pt-32 pb-24 px-6 overflow-hidden" data-testid="hero-section">
         <div className="container mx-auto max-w-6xl">
           {/* Logo CabLib - En haut, centré */}
-          <div className="text-center mb-16 opacity-0 animate-fade-in-up">
+          <div className="text-center mb-16 animate-fade-in-up">
             <h1 className="logo-text text-6xl md:text-7xl mb-4">
               CabLib
             </h1>
@@ -24,7 +24,7 @@ export default function LandingPage({ user, onLogout }) {
           </div>
 
           {/* Titre principal */}
-          <div className="text-center mb-12 opacity-0 animate-fade-in-up animate-delay-100">
+          <div className="text-center mb-12 animate-fade-in-up animate-delay-100">
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05] text-foreground mb-8">
               L'espace médical
               <br />
@@ -37,12 +37,12 @@ export default function LandingPage({ user, onLogout }) {
           </div>
 
           {/* Barre de recherche */}
-          <div className="max-w-3xl mx-auto mb-12 opacity-0 animate-scale-in animate-delay-200" data-testid="hero-search">
+          <div className="max-w-3xl mx-auto mb-12 animate-scale-in animate-delay-200" data-testid="hero-search">
             <SearchBar />
           </div>
 
           {/* Tags de confiance */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground opacity-0 animate-fade-in-up animate-delay-300">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground animate-fade-in-up animate-delay-300">
             <div className="flex items-center gap-2 bg-secondary/50 px-4 py-2 rounded-full">
               <Sparkles className="h-4 w-4 text-blue-500" />
               <span>Matching intelligent</span>
