@@ -149,6 +149,16 @@ export const Header = ({ user, onLogout }) => {
                     <FileText className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
                     <span style={{ color: '#1A1F3D' }}>Candidatures</span>
                   </DropdownMenuItem>
+                  {user.user_type === 'proprietaire' && (
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/owner-stats')} 
+                      className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
+                      data-testid="owner-stats-menu-item"
+                    >
+                      <BarChart3 className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                      <span style={{ color: '#1A1F3D' }}>Mes statistiques</span>
+                    </DropdownMenuItem>
+                  )}
                   {user.user_type === 'locataire' && (
                     <DropdownMenuItem 
                       onClick={() => navigate('/alerts')} 
