@@ -109,7 +109,7 @@ class UserRegister(BaseModel):
     password: str
     first_name: str
     last_name: str
-    rpps_number: str
+    rpps_number: Optional[str] = None  # Optional for non-conventional professions
     profession: str
     user_type: str  # "locataire", "proprietaire", or "admin"
     # Optional matching preferences
