@@ -51,15 +51,19 @@ export const Header = ({ user, onLogout }) => {
     <header 
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         scrolled 
-          ? 'bg-white/80 backdrop-blur-xl shadow-sm' 
-          : 'bg-transparent'
+          ? 'shadow-sm' 
+          : ''
       }`} 
+      style={{ 
+        backgroundColor: scrolled ? 'rgba(245, 240, 230, 0.95)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none'
+      }}
       data-testid="main-header"
     >
       <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
-          <span className="logo-text text-2xl md:text-3xl">
+          <span className="logo-text text-3xl md:text-4xl">
             CabLib
           </span>
         </Link>
@@ -69,7 +73,8 @@ export const Header = ({ user, onLogout }) => {
           {/* Search Link */}
           <Button 
             variant="ghost" 
-            className="hidden md:flex rounded-full text-muted-foreground hover:text-foreground"
+            className="hidden md:flex rounded-full hover:bg-[#1A1F3D]/10"
+            style={{ color: '#1A1F3D' }}
             onClick={() => navigate('/search')}
           >
             Explorer
@@ -80,13 +85,13 @@ export const Header = ({ user, onLogout }) => {
               {/* Messages Icon */}
               <Button 
                 variant="ghost" 
-                className="relative rounded-full"
+                className="relative rounded-full hover:bg-[#1A1F3D]/10"
                 onClick={() => navigate('/messages')}
                 data-testid="messages-button"
               >
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5" style={{ color: '#1A1F3D' }} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#1A1F3D', color: '#F5F0E6' }}>
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -96,78 +101,78 @@ export const Header = ({ user, onLogout }) => {
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className="rounded-full gap-2 hover:bg-secondary" 
+                    className="rounded-full gap-2 hover:bg-[#1A1F3D]/10" 
                     data-testid="user-menu-trigger"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" style={{ backgroundColor: '#1A1F3D', color: '#F5F0E6' }}>
                       {user.first_name?.charAt(0)}
                     </div>
-                    <span className="hidden md:inline">{user.first_name}</span>
+                    <span className="hidden md:inline" style={{ color: '#1A1F3D' }}>{user.first_name}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2">
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2" style={{ backgroundColor: '#FAF7F2', borderColor: '#E8E0D5' }}>
                   <DropdownMenuItem 
                     onClick={() => navigate('/profile')} 
-                    className="rounded-xl py-3"
+                    className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                     data-testid="profile-menu-item"
                   >
-                    <User className="mr-3 h-4 w-4" />
-                    <span>Profil</span>
+                    <User className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                    <span style={{ color: '#1A1F3D' }}>Profil</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => navigate(user.user_type === 'locataire' ? '/dashboard-locataire' : user.user_type === 'admin' ? '/analytics' : '/dashboard-proprietaire')}
-                    className="rounded-xl py-3"
+                    className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                     data-testid="dashboard-menu-item"
                   >
-                    <LayoutDashboard className="mr-3 h-4 w-4" />
-                    <span>Tableau de bord</span>
+                    <LayoutDashboard className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                    <span style={{ color: '#1A1F3D' }}>Tableau de bord</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuSeparator className="my-2" style={{ backgroundColor: '#E8E0D5' }} />
                   <DropdownMenuItem 
                     onClick={() => navigate('/messages')} 
-                    className="rounded-xl py-3"
+                    className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                     data-testid="messages-menu-item"
                   >
-                    <MessageCircle className="mr-3 h-4 w-4" />
-                    <span>Messages</span>
+                    <MessageCircle className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                    <span style={{ color: '#1A1F3D' }}>Messages</span>
                     {unreadCount > 0 && (
-                      <span className="ml-auto bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#1A1F3D', color: '#F5F0E6' }}>
                         {unreadCount}
                       </span>
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => navigate('/applications')} 
-                    className="rounded-xl py-3"
+                    className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                     data-testid="applications-menu-item"
                   >
-                    <FileText className="mr-3 h-4 w-4" />
-                    <span>Candidatures</span>
+                    <FileText className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                    <span style={{ color: '#1A1F3D' }}>Candidatures</span>
                   </DropdownMenuItem>
                   {user.user_type === 'locataire' && (
                     <DropdownMenuItem 
                       onClick={() => navigate('/alerts')} 
-                      className="rounded-xl py-3"
+                      className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                       data-testid="alerts-menu-item"
                     >
-                      <Bell className="mr-3 h-4 w-4" />
-                      <span>Mes alertes</span>
+                      <Bell className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                      <span style={{ color: '#1A1F3D' }}>Mes alertes</span>
                     </DropdownMenuItem>
                   )}
                   {user.user_type === 'admin' && (
                     <DropdownMenuItem 
                       onClick={() => navigate('/analytics')} 
-                      className="rounded-xl py-3"
+                      className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
                       data-testid="analytics-menu-item"
                     >
-                      <BarChart3 className="mr-3 h-4 w-4" />
-                      <span>Analytics</span>
+                      <BarChart3 className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                      <span style={{ color: '#1A1F3D' }}>Analytics</span>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuSeparator className="my-2" style={{ backgroundColor: '#E8E0D5' }} />
                   <DropdownMenuItem 
                     onClick={onLogout} 
-                    className="rounded-xl py-3 text-red-600 focus:text-red-600" 
+                    className="rounded-xl py-3 text-red-600 focus:text-red-600 hover:bg-red-50" 
                     data-testid="logout-menu-item"
                   >
                     <LogOut className="mr-3 h-4 w-4" />
@@ -179,7 +184,7 @@ export const Header = ({ user, onLogout }) => {
           ) : (
             <Button 
               onClick={() => navigate('/auth')} 
-              className="btn-apple text-white rounded-full px-6 py-2 text-sm font-medium"
+              className="btn-navy rounded-full px-6 py-2 text-sm font-medium"
               data-testid="login-button"
             >
               Connexion
