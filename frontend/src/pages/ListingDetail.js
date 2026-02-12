@@ -4,8 +4,9 @@ import axios from 'axios';
 import { Header } from '../components/Header';
 import { RentabilityCalculator } from '../components/RentabilityCalculator';
 import { ScheduleVisitModal } from '../components/ScheduleVisitModal';
+import { ApplicationModal } from '../components/ApplicationModal';
 import { Button } from '../components/ui/button';
-import { MapPin, Home, Users, TrendingUp, Mail, Heart, ArrowLeft, Building2, Calculator, Calendar } from 'lucide-react';
+import { MapPin, Home, Users, TrendingUp, Mail, Heart, ArrowLeft, Building2, Calculator, Calendar, FileText, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
