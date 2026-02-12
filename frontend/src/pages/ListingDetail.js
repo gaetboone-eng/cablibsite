@@ -385,6 +385,70 @@ export default function ListingDetail({ user, onLogout }) {
         onClose={() => setShowApplicationModal(false)}
         listing={listing}
       />
+
+      {/* Message Modal with Templates */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: '#E8E0D5' }}>
+              <div>
+                <h2 className="text-xl font-bold" style={{ color: '#1A1F3D' }}>Envoyer un message</h2>
+                <p className="text-sm" style={{ color: '#5A6478' }}>{listing.title}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowMessageModal(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Templates */}
+              <MessageTemplates 
+                onSelectTemplate={handleTemplateSelect}
+                listingTitle={listing.title}
+              />
+
+              {/* Message Input */}
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#1A1F3D' }}>
+                  Votre message
+                </label>
+                <textarea
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  className="w-full border rounded-xl p-4 min-h-[180px] focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    borderColor: '#E8E0D5', 
+                    backgroundColor: '#FAF7F2',
+                    color: '#1A1F3D'
+                  }}
+                  placeholder="Écrivez votre message ou sélectionnez un modèle ci-dessus..."
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMessageModal(false)}
+                  className="flex-1 rounded-full py-6"
+                  style={{ borderColor: '#E8E0D5' }}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={sendingMessage || !messageContent.trim()}
+                  className="flex-1 btn-navy rounded-full py-6"
+                >
+                  {sendingMessage ? 'Envoi...' : 'Envoyer'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
