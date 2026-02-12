@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { User, LogOut, LayoutDashboard, BarChart3, Bell, MessageCircle, FileText } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, BarChart3, Bell, MessageCircle, FileText, Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -17,11 +17,19 @@ const API = `${BACKEND_URL}/api`;
 export const Header = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchUnreadCount();
-      // Poll every 30 seconds
       const interval = setInterval(fetchUnreadCount, 30000);
       return () => clearInterval(interval);
     }
@@ -40,15 +48,33 @@ export const Header = ({ user, onLogout }) => {
   };
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-border h-20 flex items-center shadow-sm" data-testid="main-header">
-      <div className="container mx-auto px-6 flex items-center justify-between">
+    <header 
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-white/80 backdrop-blur-xl shadow-sm' 
+          : 'bg-transparent'
+      }`} 
+      data-testid="main-header"
+    >
+      <div className="container mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
-          <span className="text-3xl font-bold tracking-tight text-primary" style={{ fontFamily: 'Source Sans Pro, sans-serif', letterSpacing: '-0.02em' }}>
+          <span className="logo-text text-2xl md:text-3xl">
             CabLib
           </span>
         </Link>
 
-        <nav className="flex items-center gap-4">
+        {/* Navigation */}
+        <nav className="flex items-center gap-2 md:gap-4">
+          {/* Search Link */}
+          <Button 
+            variant="ghost" 
+            className="hidden md:flex rounded-full text-muted-foreground hover:text-foreground"
+            onClick={() => navigate('/search')}
+          >
+            Explorer
+          </Button>
+
           {user ? (
             <>
               {/* Messages Icon */}
@@ -60,7 +86,7 @@ export const Header = ({ user, onLogout }) => {
               >
                 <MessageCircle className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -68,52 +94,83 @@ export const Header = ({ user, onLogout }) => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="rounded-full gap-2" data-testid="user-menu-trigger">
-                    <User className="h-4 w-4" />
-                    <span>{user.first_name}</span>
+                  <Button 
+                    variant="ghost" 
+                    className="rounded-full gap-2 hover:bg-secondary" 
+                    data-testid="user-menu-trigger"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                      {user.first_name?.charAt(0)}
+                    </div>
+                    <span className="hidden md:inline">{user.first_name}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onClick={() => navigate('/profile')} data-testid="profile-menu-item">
-                    <User className="mr-2 h-4 w-4" />
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2">
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/profile')} 
+                    className="rounded-xl py-3"
+                    data-testid="profile-menu-item"
+                  >
+                    <User className="mr-3 h-4 w-4" />
                     <span>Profil</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => navigate(user.user_type === 'locataire' ? '/dashboard-locataire' : user.user_type === 'admin' ? '/analytics' : '/dashboard-proprietaire')}
+                    className="rounded-xl py-3"
                     data-testid="dashboard-menu-item"
                   >
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <LayoutDashboard className="mr-3 h-4 w-4" />
                     <span>Tableau de bord</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/messages')} data-testid="messages-menu-item">
-                    <MessageCircle className="mr-2 h-4 w-4" />
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/messages')} 
+                    className="rounded-xl py-3"
+                    data-testid="messages-menu-item"
+                  >
+                    <MessageCircle className="mr-3 h-4 w-4" />
                     <span>Messages</span>
                     {unreadCount > 0 && (
-                      <span className="ml-auto bg-primary text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      <span className="ml-auto bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                         {unreadCount}
                       </span>
                     )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/applications')} data-testid="applications-menu-item">
-                    <FileText className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/applications')} 
+                    className="rounded-xl py-3"
+                    data-testid="applications-menu-item"
+                  >
+                    <FileText className="mr-3 h-4 w-4" />
                     <span>Candidatures</span>
                   </DropdownMenuItem>
                   {user.user_type === 'locataire' && (
-                    <DropdownMenuItem onClick={() => navigate('/alerts')} data-testid="alerts-menu-item">
-                      <Bell className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/alerts')} 
+                      className="rounded-xl py-3"
+                      data-testid="alerts-menu-item"
+                    >
+                      <Bell className="mr-3 h-4 w-4" />
                       <span>Mes alertes</span>
                     </DropdownMenuItem>
                   )}
                   {user.user_type === 'admin' && (
-                    <DropdownMenuItem onClick={() => navigate('/analytics')} data-testid="analytics-menu-item">
-                      <BarChart3 className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/analytics')} 
+                      className="rounded-xl py-3"
+                      data-testid="analytics-menu-item"
+                    >
+                      <BarChart3 className="mr-3 h-4 w-4" />
                       <span>Analytics</span>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onLogout} className="text-destructive" data-testid="logout-menu-item">
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem 
+                    onClick={onLogout} 
+                    className="rounded-xl py-3 text-red-600 focus:text-red-600" 
+                    data-testid="logout-menu-item"
+                  >
+                    <LogOut className="mr-3 h-4 w-4" />
                     <span>Déconnexion</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -122,7 +179,7 @@ export const Header = ({ user, onLogout }) => {
           ) : (
             <Button 
               onClick={() => navigate('/auth')} 
-              className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 shadow-lg shadow-primary/20"
+              className="btn-apple text-white rounded-full px-6 py-2 text-sm font-medium"
               data-testid="login-button"
             >
               Connexion
