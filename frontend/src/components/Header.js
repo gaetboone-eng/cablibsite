@@ -179,6 +179,16 @@ export const Header = ({ user, onLogout }) => {
                       <span style={{ color: '#1A1F3D' }}>Analytics</span>
                     </DropdownMenuItem>
                   )}
+                  {user.user_type === 'admin' && (
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/admin/users')} 
+                      className="rounded-xl py-3 hover:bg-[#1A1F3D]/10"
+                      data-testid="admin-users-menu-item"
+                    >
+                      <Users className="mr-3 h-4 w-4" style={{ color: '#1A1F3D' }} />
+                      <span style={{ color: '#1A1F3D' }}>Gestion utilisateurs</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="my-2" style={{ backgroundColor: '#E8E0D5' }} />
                   <DropdownMenuItem 
                     onClick={onLogout} 
