@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from '../components/Header';
+import { PhotoUploader } from '../components/PhotoUploader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -30,7 +31,6 @@ export default function CreateListing({ user, onLogout }) {
     is_featured: false
   });
 
-  const [photoInput, setPhotoInput] = useState('');
   const [profPresentInput, setProfPresentInput] = useState('');
   const [profSearchedInput, setProfSearchedInput] = useState('');
 
@@ -38,16 +38,9 @@ export default function CreateListing({ user, onLogout }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const addPhoto = () => {
-    if (photoInput.trim() && formData.photos.length < 5) {
-      setFormData({ ...formData, photos: [...formData.photos, photoInput.trim()] });
-      setPhotoInput('');
-    }
+  const handlePhotosChange = (newPhotos) => {
+    setFormData({ ...formData, photos: newPhotos });
   };
-
-  const removePhoto = (index) => {
-    setFormData({
-      ...formData,
       photos: formData.photos.filter((_, i) => i !== index)
     });
   };
