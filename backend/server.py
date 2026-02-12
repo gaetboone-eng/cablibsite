@@ -472,9 +472,46 @@ async def get_listings(
     structure_type: Optional[str] = None,
     min_size: Optional[int] = None,
     max_rent: Optional[int] = None,
-    profession: Optional[str] = None
+    profession: Optional[str] = None,
+    radius: Optional[int] = None  # Radius in km
 ):
     query = {}
+    
+    # If radius search is requested
+    if city and radius and radius > 0:
+        center_coords = get_city_coordinates(city)
+        if center_coords:
+            # Get all listings and filter by distance
+            all_listings = await db.listings.find({}, {"_id": 0}).to_list(500)
+            filtered_listings = []
+            
+            for listing in all_listings:
+                listing_coords = get_city_coordinates(listing.get("city", ""))
+                if listing_coords:
+                    distance = haversine_distance(
+                        center_coords[0], center_coords[1],
+                        listing_coords[0], listing_coords[1]
+                    )
+                    if distance <= radius:
+                        # Apply other filters
+                        if structure_type and listing.get("structure_type") != structure_type:
+                            continue
+                        if min_size and listing.get("size", 0) < min_size:
+                            continue
+                        if max_rent and listing.get("monthly_rent", 0) > max_rent:
+                            continue
+                        if profession:
+                            profiles = listing.get("profiles_searched", [])
+                            if not any(profession.lower() in p.lower() for p in profiles):
+                                continue
+                        listing["distance_km"] = round(distance, 1)
+                        filtered_listings.append(listing)
+            
+            # Sort by distance
+            filtered_listings.sort(key=lambda x: x.get("distance_km", 999))
+            return [Listing(**listing) for listing in filtered_listings]
+    
+    # Standard search without radius
     if city:
         query["city"] = {"$regex": city, "$options": "i"}
     if structure_type:
