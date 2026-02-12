@@ -73,6 +73,14 @@ function App() {
             path="/alerts" 
             element={user && user.user_type === 'locataire' ? <AlertsPage user={user} onLogout={handleLogout} /> : <Navigate to="/" />} 
           />
+          <Route 
+            path="/messages" 
+            element={user ? <MessagesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/applications" 
+            element={user ? <ApplicationsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} 
+          />
           <Route path="/profile" element={user ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         </Routes>
       </BrowserRouter>
