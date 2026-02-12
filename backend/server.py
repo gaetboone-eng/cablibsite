@@ -415,9 +415,23 @@ async def register(user_data: UserRegister):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Validate RPPS (simple 11 digit validation)
-    if not user_data.rpps_number.isdigit() or len(user_data.rpps_number) != 11:
-        raise HTTPException(status_code=400, detail="Invalid RPPS number (must be 11 digits)")
+    # Determine verification status based on RPPS
+    has_valid_rpps = False
+    is_verified = False
+    verification_status = "pending"
+    
+    if user_data.rpps_number and user_data.rpps_number.strip():
+        # Validate RPPS (11 digits)
+        if user_data.rpps_number.isdigit() and len(user_data.rpps_number) == 11:
+            has_valid_rpps = True
+            is_verified = True
+            verification_status = "verified"
+        else:
+            raise HTTPException(status_code=400, detail="Numéro RPPS invalide (doit contenir 11 chiffres)")
+    else:
+        # No RPPS - account needs admin validation
+        is_verified = False
+        verification_status = "pending"
     
     # Create user
     user_id = str(uuid.uuid4())
@@ -427,9 +441,11 @@ async def register(user_data: UserRegister):
         "password": hash_password(user_data.password),
         "first_name": user_data.first_name,
         "last_name": user_data.last_name,
-        "rpps_number": user_data.rpps_number,
+        "rpps_number": user_data.rpps_number if user_data.rpps_number else None,
         "profession": user_data.profession,
         "user_type": user_data.user_type,
+        "is_verified": is_verified,
+        "verification_status": verification_status,
         "preferred_city": user_data.preferred_city,
         "max_budget": user_data.max_budget,
         "min_size": user_data.min_size,
@@ -449,6 +465,8 @@ async def register(user_data: UserRegister):
         rpps_number=user_data.rpps_number,
         profession=user_data.profession,
         user_type=user_data.user_type,
+        is_verified=is_verified,
+        verification_status=verification_status,
         created_at=user_doc["created_at"]
     )
     
