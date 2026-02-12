@@ -55,6 +55,10 @@ export default function SearchResults({ user, onLogout }) {
       if (filters.min_size) params.min_size = filters.min_size;
       if (filters.max_rent) params.max_rent = filters.max_rent;
       if (filters.profession) params.profession = filters.profession;
+      // New filters
+      if (filters.has_parking === 'true') params.has_parking = true;
+      if (filters.is_pmr_accessible === 'true') params.is_pmr_accessible = true;
+      if (filters.equipments) params.equipments = filters.equipments;
 
       const response = await axios.get(`${API}/listings`, { params });
       setListings(response.data);
