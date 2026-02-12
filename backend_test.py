@@ -1,334 +1,343 @@
+#!/usr/bin/env python3
+"""
+CabLib Backend API Testing
+Testing the medical office rental platform API endpoints
+"""
+
 import requests
-import sys
-from datetime import datetime
 import json
+import time
+import os
+from pathlib import Path
+
+# Test Configuration
+BASE_URL = "https://office-match-hub.preview.emergentagent.com/api"
+
+# Test accounts
+TEST_ACCOUNTS = {
+    "proprietaire": {
+        "email": "proprietaire@test.fr",
+        "password": "test123"
+    },
+    "locataire": {
+        "email": "locataire@test.fr", 
+        "password": "test123"
+    }
+}
 
 class CabLibTester:
-    def __init__(self, base_url="https://office-match-hub.preview.emergentagent.com"):
-        self.base_url = base_url
-        self.api_url = f"{base_url}/api"
-        self.token = None
-        self.user_data = None
-        self.test_listing_id = None
-        self.tests_run = 0
-        self.tests_passed = 0
-
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
-        """Run a single API test"""
-        url = f"{self.api_url}/{endpoint}"
-        test_headers = {'Content-Type': 'application/json'}
-        if self.token:
-            test_headers['Authorization'] = f'Bearer {self.token}'
-        if headers:
-            test_headers.update(headers)
-
-        self.tests_run += 1
-        print(f"\n🔍 Testing {name}...")
+    def __init__(self):
+        self.session = requests.Session()
+        self.tokens = {}
+        self.test_results = {}
+        
+    def log_result(self, test_name, success, message):
+        """Log test result"""
+        status = "PASS" if success else "FAIL"
+        print(f"[{status}] {test_name}: {message}")
+        self.test_results[test_name] = {"success": success, "message": message}
+    
+    def authenticate_user(self, user_type):
+        """Authenticate and get token for user type"""
+        try:
+            login_data = TEST_ACCOUNTS[user_type]
+            response = self.session.post(f"{BASE_URL}/auth/login", json=login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                token = data["access_token"]
+                self.tokens[user_type] = token
+                self.log_result(f"Auth_{user_type}", True, f"Login successful")
+                return True
+            else:
+                self.log_result(f"Auth_{user_type}", False, f"Login failed: {response.status_code} - {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result(f"Auth_{user_type}", False, f"Login exception: {str(e)}")
+            return False
+    
+    def get_auth_headers(self, user_type):
+        """Get authorization headers for user type"""
+        token = self.tokens.get(user_type)
+        if not token:
+            return {}
+        return {"Authorization": f"Bearer {token}"}
+    
+    def test_radius_search(self):
+        """Test radius search functionality"""
+        print("\n=== Testing Radius Search ===")
         
         try:
-            if method == 'GET':
-                response = requests.get(url, headers=test_headers)
-            elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers)
-            elif method == 'PUT':
-                response = requests.put(url, json=data, headers=test_headers)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=test_headers)
-
-            success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                print(f"✅ Passed - Status: {response.status_code}")
-                try:
-                    return success, response.json()
-                except:
-                    return success, {}
+            # Test 1: Paris with 500km radius - should return Paris and Lyon
+            response = self.session.get(f"{BASE_URL}/listings?city=Paris&radius=500")
+            if response.status_code == 200:
+                listings_500km = response.json()
+                cities_found = [listing.get("city", "").lower() for listing in listings_500km]
+                
+                if "paris" in cities_found and "lyon" in cities_found:
+                    self.log_result("Radius_Search_500km", True, f"Found {len(listings_500km)} listings including Paris and Lyon")
+                else:
+                    self.log_result("Radius_Search_500km", False, f"Expected Paris and Lyon, found cities: {cities_found}")
             else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                try:
-                    error_detail = response.json()
-                    print(f"   Error details: {error_detail}")
-                except:
-                    print(f"   Response text: {response.text}")
-
-            return False, {}
-
+                self.log_result("Radius_Search_500km", False, f"API error: {response.status_code}")
+            
+            # Test 2: Paris with 100km radius - should return only Paris
+            response = self.session.get(f"{BASE_URL}/listings?city=Paris&radius=100")
+            if response.status_code == 200:
+                listings_100km = response.json()
+                cities_found = [listing.get("city", "").lower() for listing in listings_100km]
+                
+                if "paris" in cities_found and "lyon" not in cities_found:
+                    self.log_result("Radius_Search_100km", True, f"Found {len(listings_100km)} listings, only Paris (no Lyon)")
+                else:
+                    self.log_result("Radius_Search_100km", False, f"Expected only Paris, found cities: {cities_found}")
+            else:
+                self.log_result("Radius_Search_100km", False, f"API error: {response.status_code}")
+                
         except Exception as e:
-            print(f"❌ Failed - Error: {str(e)}")
-            return False, {}
-
-    def test_register_user(self, user_type="locataire"):
-        """Test user registration with RPPS validation"""
-        timestamp = datetime.now().strftime('%H%M%S')
-        test_data = {
-            "email": f"test_{user_type}_{timestamp}@test.com",
-            "password": "TestPass123!",
-            "first_name": "Jean",
-            "last_name": "Dupont",
-            "rpps_number": "12345678901",  # 11 digits
-            "profession": "Médecin généraliste",
-            "user_type": user_type
-        }
+            self.log_result("Radius_Search", False, f"Exception: {str(e)}")
+    
+    def test_document_upload(self):
+        """Test document upload functionality"""
+        print("\n=== Testing Document Upload ===")
         
-        success, response = self.run_test(
-            f"Register {user_type}",
-            "POST",
-            "auth/register",
-            200,
-            data=test_data
-        )
+        if not self.authenticate_user("locataire"):
+            return
         
-        if success and 'access_token' in response:
-            self.token = response['access_token']
-            self.user_data = response['user']
-            print(f"   Registered user: {self.user_data['email']}")
-            return True
-        return False
-
-    def test_register_invalid_rpps(self):
-        """Test registration with invalid RPPS number"""
-        timestamp = datetime.now().strftime('%H%M%S')
-        test_data = {
-            "email": f"invalid_{timestamp}@test.com",
-            "password": "TestPass123!",
-            "first_name": "Jean",
-            "last_name": "Dupont",
-            "rpps_number": "123456789",  # Only 9 digits - should fail
-            "profession": "Médecin généraliste",
-            "user_type": "locataire"
-        }
+        headers = self.get_auth_headers("locataire")
         
-        success, response = self.run_test(
-            "Register with invalid RPPS",
-            "POST",
-            "auth/register",
-            400,  # Should fail with 400
-            data=test_data
-        )
-        return success
-
-    def test_login(self, email=None, password=None):
-        """Test user login"""
-        if not email and self.user_data:
-            email = self.user_data['email']
-        if not password:
-            password = "TestPass123!"
+        try:
+            # Create a test PDF file
+            test_file_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000079 00000 n \n0000000173 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n253\n%%EOF"
             
-        success, response = self.run_test(
-            "Login",
-            "POST",
-            "auth/login",
-            200,
-            data={"email": email, "password": password}
-        )
-        
-        if success and 'access_token' in response:
-            self.token = response['access_token']
-            return True
-        return False
-
-    def test_get_me(self):
-        """Test getting current user info"""
-        success, response = self.run_test(
-            "Get current user",
-            "GET",
-            "auth/me",
-            200
-        )
-        return success
-
-    def test_create_listing(self):
-        """Test creating a listing (proprietaire only)"""
-        if not self.user_data or self.user_data['user_type'] != 'proprietaire':
-            print("⚠️  Skipping create listing - user not proprietaire")
-            return False
+            # Test document upload
+            files = {
+                'file': ('test_cv.pdf', test_file_content, 'application/pdf')
+            }
             
-        test_data = {
-            "title": "Test Cabinet Médical",
-            "city": "Paris",
-            "address": "15 rue de la Santé",
-            "structure_type": "Cabinet",
-            "size": 50,
-            "monthly_rent": 1500,
-            "description": "Beau cabinet médical en centre-ville",
-            "photos": ["https://images.unsplash.com/photo-1497366216548-37526070297c?w=800"],
-            "professionals_present": ["Médecin généraliste"],
-            "profiles_searched": ["Kinésithérapeute"],
-            "is_featured": False
-        }
-        
-        success, response = self.run_test(
-            "Create listing",
-            "POST",
-            "listings",
-            200,
-            data=test_data
-        )
-        
-        if success and 'id' in response:
-            self.test_listing_id = response['id']
-            print(f"   Created listing with ID: {self.test_listing_id}")
-            return True
-        return False
-
-    def test_get_listings(self):
-        """Test getting listings with various filters"""
-        # Test without filters
-        success1, response1 = self.run_test(
-            "Get all listings",
-            "GET",
-            "listings",
-            200
-        )
-        
-        # Test with city filter
-        success2, response2 = self.run_test(
-            "Get listings by city",
-            "GET",
-            "listings?city=Paris",
-            200
-        )
-        
-        # Test with structure type filter
-        success3, response3 = self.run_test(
-            "Get listings by structure type",
-            "GET",
-            "listings?structure_type=Cabinet",
-            200
-        )
-        
-        return success1 and success2 and success3
-
-    def test_get_listing_detail(self):
-        """Test getting a specific listing"""
-        if not self.test_listing_id:
-            print("⚠️  Skipping get listing detail - no test listing ID")
-            return False
+            response = self.session.post(f"{BASE_URL}/documents/upload", files=files, headers=headers)
             
-        success, response = self.run_test(
-            "Get listing detail",
-            "GET",
-            f"listings/{self.test_listing_id}",
-            200
-        )
-        return success
-
-    def test_favorites(self):
-        """Test favorites functionality"""
-        if not self.test_listing_id:
-            print("⚠️  Skipping favorites test - no test listing ID")
-            return False
+            if response.status_code == 200:
+                doc_data = response.json()
+                doc_id = doc_data.get("id")
+                self.log_result("Document_Upload", True, f"Document uploaded successfully, ID: {doc_id}")
+                
+                # Test get documents list
+                response = self.session.get(f"{BASE_URL}/documents", headers=headers)
+                if response.status_code == 200:
+                    docs = response.json()
+                    if len(docs) > 0:
+                        self.log_result("Document_List", True, f"Retrieved {len(docs)} documents")
+                        
+                        # Test document deletion
+                        if doc_id:
+                            response = self.session.delete(f"{BASE_URL}/documents/{doc_id}", headers=headers)
+                            if response.status_code == 200:
+                                self.log_result("Document_Delete", True, "Document deleted successfully")
+                            else:
+                                self.log_result("Document_Delete", False, f"Delete failed: {response.status_code}")
+                    else:
+                        self.log_result("Document_List", False, "No documents found")
+                else:
+                    self.log_result("Document_List", False, f"List failed: {response.status_code}")
+            else:
+                self.log_result("Document_Upload", False, f"Upload failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Document_Upload", False, f"Exception: {str(e)}")
+    
+    def test_application_system(self):
+        """Test application/candidature system"""
+        print("\n=== Testing Application System ===")
+        
+        # Authenticate both users
+        if not self.authenticate_user("locataire") or not self.authenticate_user("proprietaire"):
+            return
+        
+        tenant_headers = self.get_auth_headers("locataire")
+        owner_headers = self.get_auth_headers("proprietaire")
+        
+        try:
+            # First, get available listings to apply to
+            response = self.session.get(f"{BASE_URL}/listings")
+            if response.status_code != 200:
+                self.log_result("Application_GetListings", False, f"Cannot get listings: {response.status_code}")
+                return
             
-        # Add to favorites
-        success1, response1 = self.run_test(
-            "Add favorite",
-            "POST",
-            "favorites",
-            200,
-            data={"listing_id": self.test_listing_id}
-        )
+            listings = response.json()
+            if not listings:
+                self.log_result("Application_System", False, "No listings available to apply to")
+                return
+            
+            target_listing = listings[0]
+            listing_id = target_listing.get("id")
+            
+            # Test: Create application
+            app_data = {
+                "listing_id": listing_id,
+                "message": "Je suis très intéressé par cette opportunité. Mon profil correspond parfaitement à vos recherches."
+            }
+            
+            response = self.session.post(f"{BASE_URL}/applications", json=app_data, headers=tenant_headers)
+            
+            if response.status_code == 200:
+                app_info = response.json()
+                app_id = app_info.get("id")
+                self.log_result("Application_Create", True, f"Application created successfully, ID: {app_id}")
+                
+                # Test: Get tenant's applications
+                response = self.session.get(f"{BASE_URL}/applications/mine", headers=tenant_headers)
+                if response.status_code == 200:
+                    my_apps = response.json()
+                    if len(my_apps) > 0:
+                        self.log_result("Application_GetMine", True, f"Retrieved {len(my_apps)} applications")
+                    else:
+                        self.log_result("Application_GetMine", False, "No applications found for tenant")
+                else:
+                    self.log_result("Application_GetMine", False, f"Failed to get applications: {response.status_code}")
+                
+                # Test: Get owner's received applications
+                response = self.session.get(f"{BASE_URL}/applications/received", headers=owner_headers)
+                if response.status_code == 200:
+                    received_apps = response.json()
+                    if len(received_apps) > 0:
+                        self.log_result("Application_GetReceived", True, f"Owner received {len(received_apps)} applications")
+                        
+                        # Test: Update application status (accept)
+                        if app_id:
+                            response = self.session.put(f"{BASE_URL}/applications/{app_id}/status?status=accepted", headers=owner_headers)
+                            if response.status_code == 200:
+                                self.log_result("Application_Accept", True, "Application accepted successfully")
+                            else:
+                                self.log_result("Application_Accept", False, f"Accept failed: {response.status_code} - {response.text}")
+                    else:
+                        self.log_result("Application_GetReceived", False, "No applications received by owner")
+                else:
+                    self.log_result("Application_GetReceived", False, f"Failed to get received applications: {response.status_code}")
+                    
+            else:
+                self.log_result("Application_Create", False, f"Create failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Application_System", False, f"Exception: {str(e)}")
+    
+    def test_messaging_system(self):
+        """Test messaging system"""
+        print("\n=== Testing Messaging System ===")
         
-        # Get favorites
-        success2, response2 = self.run_test(
-            "Get favorites",
-            "GET",
-            "favorites",
-            200
-        )
+        # Authenticate both users
+        if not self.authenticate_user("locataire") or not self.authenticate_user("proprietaire"):
+            return
         
-        # Remove from favorites
-        success3, response3 = self.run_test(
-            "Remove favorite",
-            "DELETE",
-            f"favorites/{self.test_listing_id}",
-            200
-        )
+        tenant_headers = self.get_auth_headers("locataire")
+        owner_headers = self.get_auth_headers("proprietaire")
         
-        return success1 and success2 and success3
-
-    def test_unauthorized_actions(self):
-        """Test actions that should require authentication"""
-        old_token = self.token
-        self.token = None  # Remove token temporarily
+        try:
+            # Get user IDs first
+            tenant_response = self.session.get(f"{BASE_URL}/auth/me", headers=tenant_headers)
+            owner_response = self.session.get(f"{BASE_URL}/auth/me", headers=owner_headers)
+            
+            if tenant_response.status_code != 200 or owner_response.status_code != 200:
+                self.log_result("Messaging_GetUserInfo", False, "Cannot get user information")
+                return
+            
+            tenant_info = tenant_response.json()
+            owner_info = owner_response.json()
+            
+            tenant_id = tenant_info.get("id")
+            owner_id = owner_info.get("id")
+            
+            # Test: Send message from tenant to owner
+            message_data = {
+                "receiver_id": owner_id,
+                "content": "Bonjour, je suis intéressé par votre cabinet médical. Pouvez-vous me donner plus d'informations ?",
+                "listing_id": None
+            }
+            
+            response = self.session.post(f"{BASE_URL}/messages", json=message_data, headers=tenant_headers)
+            
+            if response.status_code == 200:
+                msg_info = response.json()
+                self.log_result("Message_Send", True, f"Message sent successfully")
+                
+                # Test: Get conversations for owner
+                response = self.session.get(f"{BASE_URL}/messages/conversations", headers=owner_headers)
+                if response.status_code == 200:
+                    conversations = response.json()
+                    if len(conversations) > 0:
+                        self.log_result("Message_GetConversations", True, f"Retrieved {len(conversations)} conversations")
+                        
+                        # Test: Get specific conversation messages
+                        response = self.session.get(f"{BASE_URL}/messages/conversation/{tenant_id}", headers=owner_headers)
+                        if response.status_code == 200:
+                            messages = response.json()
+                            if len(messages) > 0:
+                                self.log_result("Message_GetConversation", True, f"Retrieved {len(messages)} messages in conversation")
+                            else:
+                                self.log_result("Message_GetConversation", False, "No messages in conversation")
+                        else:
+                            self.log_result("Message_GetConversation", False, f"Failed to get conversation: {response.status_code}")
+                    else:
+                        self.log_result("Message_GetConversations", False, "No conversations found")
+                else:
+                    self.log_result("Message_GetConversations", False, f"Failed to get conversations: {response.status_code}")
+                
+                # Test: Get unread count
+                response = self.session.get(f"{BASE_URL}/messages/unread-count", headers=owner_headers)
+                if response.status_code == 200:
+                    unread_data = response.json()
+                    unread_count = unread_data.get("unread_count", 0)
+                    self.log_result("Message_UnreadCount", True, f"Unread count: {unread_count}")
+                else:
+                    self.log_result("Message_UnreadCount", False, f"Failed to get unread count: {response.status_code}")
+                    
+            else:
+                self.log_result("Message_Send", False, f"Send failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Messaging_System", False, f"Exception: {str(e)}")
+    
+    def run_all_tests(self):
+        """Run all backend tests"""
+        print(f"Starting CabLib Backend API Tests")
+        print(f"Base URL: {BASE_URL}")
+        print("="*50)
         
-        # Should fail without auth
-        success1, _ = self.run_test(
-            "Create listing without auth",
-            "POST",
-            "listings",
-            401,  # Should get 401 Unauthorized
-            data={"title": "Test", "city": "Test"}
-        )
+        # Test authentication first
+        self.authenticate_user("proprietaire")
+        self.authenticate_user("locataire")
         
-        # Should fail without auth
-        success2, _ = self.run_test(
-            "Get favorites without auth",
-            "GET",
-            "favorites",
-            401  # Should get 401 Unauthorized
-        )
+        # Run all test suites
+        self.test_radius_search()
+        self.test_document_upload()
+        self.test_application_system()
+        self.test_messaging_system()
         
-        self.token = old_token  # Restore token
-        return success1 and success2
-
-def main():
-    print("🏥 Starting CabLib API Testing...")
-    tester = CabLibTester()
-    
-    # Test user registration and auth
-    print("\n📋 Testing Authentication...")
-    if not tester.test_register_user("proprietaire"):
-        print("❌ Registration failed, stopping tests")
-        return 1
-    
-    if not tester.test_register_invalid_rpps():
-        print("❌ RPPS validation failed")
-    
-    if not tester.test_login():
-        print("❌ Login failed")
-        return 1
+        # Summary
+        print("\n" + "="*50)
+        print("TEST SUMMARY")
+        print("="*50)
         
-    if not tester.test_get_me():
-        print("❌ Get current user failed")
-    
-    # Test listings functionality
-    print("\n🏢 Testing Listings...")
-    tester.test_create_listing()
-    
-    if not tester.test_get_listings():
-        print("❌ Get listings failed")
-    
-    tester.test_get_listing_detail()
-    
-    # Test favorites (requires locataire user)
-    print("\n❤️  Testing Favorites...")
-    # Create a locataire user for favorites test
-    original_token = tester.token
-    original_user = tester.user_data
-    
-    if tester.test_register_user("locataire"):
-        tester.test_favorites()
-    
-    # Restore proprietaire user
-    tester.token = original_token
-    tester.user_data = original_user
-    
-    # Test authorization
-    print("\n🔒 Testing Authorization...")
-    tester.test_unauthorized_actions()
-    
-    # Print results
-    print(f"\n📊 Test Results:")
-    print(f"   Tests run: {tester.tests_run}")
-    print(f"   Tests passed: {tester.tests_passed}")
-    print(f"   Success rate: {(tester.tests_passed/tester.tests_run*100):.1f}%")
-    
-    if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed!")
-        return 0
-    else:
-        print("⚠️  Some tests failed")
-        return 1
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results.values() if result["success"])
+        failed_tests = total_tests - passed_tests
+        
+        for test_name, result in self.test_results.items():
+            status = "PASS" if result["success"] else "FAIL"
+            print(f"[{status}] {test_name}")
+        
+        print(f"\nTotal: {total_tests}, Passed: {passed_tests}, Failed: {failed_tests}")
+        
+        if failed_tests > 0:
+            print("\nFAILED TESTS DETAILS:")
+            for test_name, result in self.test_results.items():
+                if not result["success"]:
+                    print(f"- {test_name}: {result['message']}")
+        
+        return failed_tests == 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    tester = CabLibTester()
+    success = tester.run_all_tests()
+    exit(0 if success else 1)
