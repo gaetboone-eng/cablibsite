@@ -107,27 +107,33 @@ user_problem_statement: "CabLib - Plateforme de mise en relation pour location d
 backend:
   - task: "Document Upload System"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoints POST /api/documents/upload, GET /api/documents, GET /api/documents/{id}/download, DELETE /api/documents/{id} implemented"
+      - working: true
+        agent: "testing"
+        comment: "All document endpoints tested successfully: Upload PDF file (10MB validation), list documents, delete document. File validation working for PDF/images. Authentication required and working correctly."
 
   - task: "Application (Candidature) System"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoints POST /api/applications, GET /api/applications/mine, GET /api/applications/received, PUT /api/applications/{id}/status implemented"
+      - working: true
+        agent: "testing"
+        comment: "Complete application workflow tested: Create application with message, retrieve tenant applications, retrieve owner received applications, accept/reject status updates. All endpoints working with proper authorization."
 
   - task: "Messaging System"
     implemented: true
@@ -135,11 +141,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Tested via curl - messages sent and conversations retrieved successfully"
+      - working: true
+        agent: "testing"
+        comment: "Full messaging system tested: Send messages, retrieve conversations, get conversation messages, unread count tracking. All endpoints working correctly with proper user identification."
 
   - task: "Radius Search (Haversine)"
     implemented: true
@@ -147,11 +156,14 @@ backend:
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Tested via curl - Paris+500km returns Paris+Lyon, Paris+100km returns only Paris"
+      - working: true
+        agent: "testing"
+        comment: "Radius search thoroughly tested: Paris+500km correctly returns 2 listings (Paris and Lyon), Paris+100km returns 1 listing (only Paris). Haversine distance calculation working accurately."
 
 frontend:
   - task: "Document Upload Component"
