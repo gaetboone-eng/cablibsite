@@ -36,15 +36,33 @@ export default function AuthPage({ onLogin }) {
 
     try {
       const endpoint = isLogin ? `${API}/auth/login` : `${API}/auth/register`;
-      const payload = isLogin 
-        ? { email: formData.email, password: formData.password }
-        : formData;
+      
+      // Prepare payload - use custom_profession if "Autre" is selected
+      let payload;
+      if (isLogin) {
+        payload = { email: formData.email, password: formData.password };
+      } else {
+        payload = {
+          ...formData,
+          profession: formData.profession === 'Autre' && formData.custom_profession 
+            ? formData.custom_profession 
+            : formData.profession,
+          rpps_number: formData.rpps_number || null  // Send null if empty
+        };
+        delete payload.custom_profession;
+      }
 
       const response = await axios.post(endpoint, payload);
       const { access_token, user } = response.data;
 
       onLogin(access_token, user);
-      toast.success(isLogin ? 'Connexion réussie !' : 'Compte créé avec succès !');
+      
+      // Show appropriate message based on verification status
+      if (!isLogin && !user.is_verified) {
+        toast.success('Compte créé ! En attente de validation par un administrateur.');
+      } else {
+        toast.success(isLogin ? 'Connexion réussie !' : 'Compte créé avec succès !');
+      }
       
       // Small delay to ensure state is updated before redirect
       setTimeout(() => {
