@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { User, LogOut, LayoutDashboard, BarChart3, Bell, MessageCircle, FileText, Menu, X } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, BarChart3, Bell, MessageCircle, FileText, Menu, X, Shield, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
