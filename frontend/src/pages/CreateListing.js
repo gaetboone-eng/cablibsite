@@ -28,14 +28,42 @@ export default function CreateListing({ user, onLogout }) {
     photos: [],
     professionals_present: [],
     profiles_searched: [],
-    is_featured: false
+    is_featured: false,
+    // New fields
+    equipments: [],
+    has_parking: false,
+    parking_spots: '',
+    is_pmr_accessible: false,
+    pmr_details: ''
   });
 
   const [profPresentInput, setProfPresentInput] = useState('');
   const [profSearchedInput, setProfSearchedInput] = useState('');
 
+  const equipmentOptions = [
+    "Salle d'attente",
+    "Table d'examen",
+    "Bureau de consultation",
+    "Salle de soins",
+    "Sanitaires patients",
+    "Point d'eau",
+    "Climatisation",
+    "Chauffage",
+    "Internet fibre",
+    "Secrétariat partagé",
+    "Salle de stérilisation",
+    "Stockage matériel"
+  ];
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleEquipmentToggle = (equipment) => {
+    const newEquipments = formData.equipments.includes(equipment)
+      ? formData.equipments.filter(e => e !== equipment)
+      : [...formData.equipments, equipment];
+    setFormData({ ...formData, equipments: newEquipments });
   };
 
   const handlePhotosChange = (newPhotos) => {
