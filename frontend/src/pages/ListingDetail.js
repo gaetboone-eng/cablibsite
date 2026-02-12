@@ -265,11 +265,21 @@ export default function ListingDetail({ user, onLogout }) {
 
                 <div className="space-y-3">
                   <Button
-                    onClick={handleContact}
+                    onClick={handleApply}
                     className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-6 shadow-lg shadow-primary/20"
+                    data-testid="apply-button"
+                  >
+                    <FileText className="mr-2 h-5 w-5" />
+                    Postuler
+                  </Button>
+
+                  <Button
+                    onClick={handleContact}
+                    variant="outline"
+                    className="w-full border-primary text-primary hover:bg-primary/10 rounded-full py-6"
                     data-testid="contact-button"
                   >
-                    <Mail className="mr-2 h-5 w-5" />
+                    <MessageCircle className="mr-2 h-5 w-5" />
                     Contacter
                   </Button>
 
