@@ -90,7 +90,21 @@ export default function ListingDetail({ user, onLogout }) {
       navigate('/auth');
       return;
     }
-    toast.success('Fonctionnalité de contact à venir !');
+    // Navigate to messages with owner context
+    navigate(`/messages?to=${listing.owner_id}&listing=${listing.id}`);
+  };
+
+  const handleApply = () => {
+    if (!user) {
+      toast.error('Veuillez vous connecter pour postuler');
+      navigate('/auth');
+      return;
+    }
+    if (user.user_type !== 'locataire') {
+      toast.error('Seuls les locataires peuvent postuler');
+      return;
+    }
+    setShowApplicationModal(true);
   };
 
   if (loading) {
