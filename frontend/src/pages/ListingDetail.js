@@ -22,6 +22,7 @@ export default function ListingDetail({ user, onLogout }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showVisitModal, setShowVisitModal] = useState(false);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
 
   useEffect(() => {
     fetchListing();
